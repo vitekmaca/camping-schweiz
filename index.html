@@ -216,47 +216,55 @@
 
   <!-- Canton + Rating -->
   <div class="filter-section">
+    <span class="section-label">Canton</span>
+    <select id="canton-filter" style="margin-bottom:8px;">
+      <option value="">All cantons</option>
+      <option value="AG">AG – Aargau</option>
+      <option value="AI">AI – Appenzell I.Rh.</option>
+      <option value="AR">AR – Appenzell A.Rh.</option>
+      <option value="BE">BE – Bern</option>
+      <option value="BL">BL – Basel-Landschaft</option>
+      <option value="BS">BS – Basel-Stadt</option>
+      <option value="FR">FR – Fribourg</option>
+      <option value="GE">GE – Geneva</option>
+      <option value="GL">GL – Glarus</option>
+      <option value="GR">GR – Graubünden</option>
+      <option value="JU">JU – Jura</option>
+      <option value="LU">LU – Lucerne</option>
+      <option value="NE">NE – Neuchâtel</option>
+      <option value="NW">NW – Nidwalden</option>
+      <option value="OW">OW – Obwalden</option>
+      <option value="SG">SG – St. Gallen</option>
+      <option value="SH">SH – Schaffhausen</option>
+      <option value="SO">SO – Solothurn</option>
+      <option value="SZ">SZ – Schwyz</option>
+      <option value="TG">TG – Thurgau</option>
+      <option value="TI">TI – Ticino</option>
+      <option value="UR">UR – Uri</option>
+      <option value="VD">VD – Vaud</option>
+      <option value="VS">VS – Valais</option>
+      <option value="ZG">ZG – Zug</option>
+      <option value="ZH">ZH – Zurich</option>
+    </select>
     <div id="location-row">
       <div>
-        <span class="section-label">Canton</span>
-        <select id="canton-filter">
-          <option value="">All cantons</option>
-          <option value="AG">AG – Aargau</option>
-          <option value="AI">AI – Appenzell I.Rh.</option>
-          <option value="AR">AR – Appenzell A.Rh.</option>
-          <option value="BE">BE – Bern</option>
-          <option value="BL">BL – Basel-Landschaft</option>
-          <option value="BS">BS – Basel-Stadt</option>
-          <option value="FR">FR – Fribourg</option>
-          <option value="GE">GE – Geneva</option>
-          <option value="GL">GL – Glarus</option>
-          <option value="GR">GR – Graubünden</option>
-          <option value="JU">JU – Jura</option>
-          <option value="LU">LU – Lucerne</option>
-          <option value="NE">NE – Neuchâtel</option>
-          <option value="NW">NW – Nidwalden</option>
-          <option value="OW">OW – Obwalden</option>
-          <option value="SG">SG – St. Gallen</option>
-          <option value="SH">SH – Schaffhausen</option>
-          <option value="SO">SO – Solothurn</option>
-          <option value="SZ">SZ – Schwyz</option>
-          <option value="TG">TG – Thurgau</option>
-          <option value="TI">TI – Ticino</option>
-          <option value="UR">UR – Uri</option>
-          <option value="VD">VD – Vaud</option>
-          <option value="VS">VS – Valais</option>
-          <option value="ZG">ZG – Zug</option>
-          <option value="ZH">ZH – Zurich</option>
-        </select>
-      </div>
-      <div>
-        <span class="section-label">Min. Google rating</span>
+        <span class="section-label">🌐 Min. Google rating</span>
         <select id="rating-filter">
           <option value="">Any</option>
           <option value="3">3.0+</option>
           <option value="3.5">3.5+</option>
           <option value="4">4.0+</option>
           <option value="4.5">4.5+</option>
+        </select>
+      </div>
+      <div>
+        <span class="section-label">🅿️ Min. P4N rating</span>
+        <select id="p4n-rating-filter">
+          <option value="">Any</option>
+          <option value="6">6.0+</option>
+          <option value="7">7.0+</option>
+          <option value="8">8.0+</option>
+          <option value="9">9.0+</option>
         </select>
       </div>
     </div>
@@ -498,13 +506,15 @@ const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} k
 function getFiltered() {
   const q = document.getElementById('search').value.toLowerCase();
   const canton = document.getElementById('canton-filter').value;
-  const minRating = parseFloat(document.getElementById('rating-filter').value) || 0;
+  const minRating    = parseFloat(document.getElementById('rating-filter').value) || 0;
+  const minP4nRating = parseFloat(document.getElementById('p4n-rating-filter').value) || 0;
 
   return allCamps.filter(c => {
     if (!activeTypes.has(c.type)) return false;
     if (q && !c.name.toLowerCase().includes(q)) return false;
     if (canton && c.canton !== canton) return false;
-    if (minRating > 0 && (c.rating_google === null || c.rating_google < minRating)) return false;
+    if (minRating    > 0 && (c.rating_google === null || c.rating_google < minRating))    return false;
+    if (minP4nRating > 0 && (c.rating_p4n   === null || c.rating_p4n   < minP4nRating)) return false;
     for (const a of activeAmenities) if (!c.amenities.includes(a)) return false;
     for (const w of activeWater) {
       const wc = WATER_CHIPS.find(x => x.key === w);
@@ -670,6 +680,7 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   document.getElementById('search').value = '';
   document.getElementById('canton-filter').value = '';
   document.getElementById('rating-filter').value = '';
+  document.getElementById('p4n-rating-filter').value = '';
   activeAmenities.clear();
   activeWater.clear();
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
@@ -686,6 +697,7 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 document.getElementById('search').addEventListener('input', applyFilters);
 document.getElementById('canton-filter').addEventListener('change', applyFilters);
 document.getElementById('rating-filter').addEventListener('change', applyFilters);
+document.getElementById('p4n-rating-filter').addEventListener('change', applyFilters);
 
 // ── Load data ─────────────────────────────────────────────────────────────────
 async function loadData() {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Park4Night Scraper — Switzerland
-Fetches Camping (C) and Farm (F) places from the P4N /api/places/around endpoint.
+Fetches Camping (C), Farm (F), Free motorhome area (ACC_G) and Paying motorhome area (ACC_P) from the P4N /api/places/around endpoint.
 Covers Switzerland via a lat/lng grid, deduplicates by P4N ID,
 then merges with existing data.json (OSM) by proximity.
 
@@ -54,7 +54,7 @@ def fetch_grid():
                 r = requests.get(P4N_API, params={
                     "lat": lat, "lng": lng,
                     "radius": RADIUS,
-                    "filter": '{"type":["C","F"]}',
+                    "filter": '{"type":["C","F","ACC_G","ACC_P"]}',
                     "lang": "en",
                 }, headers=HEADERS, timeout=20)
                 r.raise_for_status()
@@ -137,7 +137,7 @@ def merge(osm_camps, p4n_places):
         else:
             # Add as new entry
             p4n_type = place.get("type", {}).get("code", "C")
-            type_map = {"C": "campsite", "F": "farm"}
+            type_map = {"C": "campsite", "F": "farm", "ACC_G": "stellplatz", "ACC_P": "stellplatz"}
             amenities = list(set(map_services(place.get("services", [])) +
                                   map_activities(place.get("activities", []))))
             osm_camps.append({
