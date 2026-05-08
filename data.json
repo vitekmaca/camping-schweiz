@@ -1,0 +1,196 @@
+[
+  {
+    "id": "ch-001", "name": "Camping Fischers Fritz", "lat": 47.3980, "lng": 8.3420,
+    "canton": "ZH", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","playground","dogs","laundry"],
+    "near_water": "lake", "distance_water_m": 50, "distance_town_m": 2000,
+    "rating_google": 4.3, "rating_p4n": 8.1,
+    "url_google": "https://maps.google.com/?q=Camping+Fischers+Fritz+Zürich",
+    "url_p4n": "https://park4night.com/lieu/12001",
+    "url_osm": "https://www.openstreetmap.org/node/111001", "website": null
+  },
+  {
+    "id": "ch-002", "name": "Bauernhof Müller", "lat": 46.9480, "lng": 7.4474,
+    "canton": "BE", "type": "farm",
+    "amenities": ["toilets","dogs","bbq"],
+    "near_water": "river", "distance_water_m": 300, "distance_town_m": 5000,
+    "rating_google": 4.7, "rating_p4n": 9.2,
+    "url_google": "https://maps.google.com/?q=Bauernhof+Müller+Bern",
+    "url_p4n": "https://park4night.com/lieu/12002",
+    "url_osm": "https://www.openstreetmap.org/node/111002", "website": null
+  },
+  {
+    "id": "ch-003", "name": "Stellplatz am Rhein", "lat": 47.6970, "lng": 8.6310,
+    "canton": "SH", "type": "stellplatz",
+    "amenities": ["toilets","electricity","wifi"],
+    "near_water": "river", "distance_water_m": 20, "distance_town_m": 800,
+    "rating_google": 3.9, "rating_p4n": null,
+    "url_google": "https://maps.google.com/?q=Stellplatz+Rhein+Schaffhausen",
+    "url_p4n": null, "url_osm": "https://www.openstreetmap.org/node/111003", "website": null
+  },
+  {
+    "id": "ch-004", "name": "Bivouac Greina", "lat": 46.6100, "lng": 8.9900,
+    "canton": "GR", "type": "bivouac",
+    "amenities": [],
+    "near_water": "river", "distance_water_m": 100, "distance_town_m": 15000,
+    "rating_google": null, "rating_p4n": null,
+    "url_google": null, "url_p4n": null,
+    "url_osm": "https://www.openstreetmap.org/node/111004", "website": null
+  },
+  {
+    "id": "ch-005", "name": "Camping Delta", "lat": 46.0037, "lng": 8.9511,
+    "canton": "TI", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","pool","swimming","playground","restaurant","shop","bikes","accessible","laundry"],
+    "near_water": "lake", "distance_water_m": 0, "distance_town_m": 1000,
+    "rating_google": 4.6, "rating_p4n": 8.8,
+    "url_google": "https://maps.google.com/?q=Camping+Delta+Locarno",
+    "url_p4n": "https://park4night.com/lieu/12005",
+    "url_osm": "https://www.openstreetmap.org/node/111005", "website": "https://campingdelta.com"
+  },
+  {
+    "id": "ch-006", "name": "TCS Camping Interlaken", "lat": 46.6863, "lng": 7.8632,
+    "canton": "BE", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","swimming","playground","laundry","dogs"],
+    "near_water": "lake", "distance_water_m": 200, "distance_town_m": 1500,
+    "rating_google": 4.2, "rating_p4n": 8.0,
+    "url_google": "https://maps.google.com/?q=TCS+Camping+Interlaken",
+    "url_p4n": "https://park4night.com/lieu/12006",
+    "url_osm": "https://www.openstreetmap.org/node/111006", "website": null
+  },
+  {
+    "id": "ch-007", "name": "Camping Gampelen", "lat": 47.0070, "lng": 7.0620,
+    "canton": "BE", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","dogs","bbq"],
+    "near_water": "lake", "distance_water_m": 500, "distance_town_m": 3000,
+    "rating_google": 3.8, "rating_p4n": null,
+    "url_google": null, "url_p4n": null,
+    "url_osm": "https://www.openstreetmap.org/node/111007", "website": null
+  },
+  {
+    "id": "ch-008", "name": "Hof Zumbrunnen", "lat": 46.7667, "lng": 8.5833,
+    "canton": "UR", "type": "farm",
+    "amenities": ["toilets","bbq","dogs"],
+    "near_water": null, "distance_water_m": null, "distance_town_m": 8000,
+    "rating_google": 5.0, "rating_p4n": 9.8,
+    "url_google": "https://maps.google.com/?q=Hof+Zumbrunnen+Uri",
+    "url_p4n": "https://park4night.com/lieu/12008",
+    "url_osm": "https://www.openstreetmap.org/node/111008", "website": null
+  },
+  {
+    "id": "ch-009", "name": "Camping Sempachersee", "lat": 47.1280, "lng": 8.1940,
+    "canton": "LU", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","swimming","playground","shop","dogs"],
+    "near_water": "lake", "distance_water_m": 30, "distance_town_m": 2500,
+    "rating_google": 4.4, "rating_p4n": 8.5,
+    "url_google": "https://maps.google.com/?q=Camping+Sempachersee",
+    "url_p4n": "https://park4night.com/lieu/12009",
+    "url_osm": "https://www.openstreetmap.org/node/111009", "website": "https://camping-sempach.ch"
+  },
+  {
+    "id": "ch-010", "name": "Stellplatz Weinland", "lat": 47.6210, "lng": 8.7650,
+    "canton": "ZH", "type": "stellplatz",
+    "amenities": ["toilets","electricity","wifi","dogs"],
+    "near_water": "river", "distance_water_m": 400, "distance_town_m": 1200,
+    "rating_google": 4.1, "rating_p4n": 7.9,
+    "url_google": "https://maps.google.com/?q=Stellplatz+Weinland+Zürich",
+    "url_p4n": "https://park4night.com/lieu/12010",
+    "url_osm": "https://www.openstreetmap.org/node/111010", "website": null
+  },
+  {
+    "id": "ch-011", "name": "Camping Aare", "lat": 47.2320, "lng": 7.3580,
+    "canton": "SO", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","swimming","bbq","dogs"],
+    "near_water": "river", "distance_water_m": 10, "distance_town_m": 4000,
+    "rating_google": 4.0, "rating_p4n": null,
+    "url_google": "https://maps.google.com/?q=Camping+Aare+Solothurn",
+    "url_p4n": null, "url_osm": "https://www.openstreetmap.org/node/111011", "website": null
+  },
+  {
+    "id": "ch-012", "name": "Ferme des Alpes", "lat": 46.3830, "lng": 6.9140,
+    "canton": "VD", "type": "farm",
+    "amenities": ["toilets","showers","bbq","dogs"],
+    "near_water": null, "distance_water_m": null, "distance_town_m": 6000,
+    "rating_google": 4.8, "rating_p4n": 9.5,
+    "url_google": "https://maps.google.com/?q=Ferme+des+Alpes+Vaud",
+    "url_p4n": "https://park4night.com/lieu/12012",
+    "url_osm": "https://www.openstreetmap.org/node/111012", "website": null
+  },
+  {
+    "id": "ch-013", "name": "Camping Genf-Pointe-à-la-Bise", "lat": 46.2370, "lng": 6.2050,
+    "canton": "GE", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","pool","swimming","restaurant","accessible","laundry"],
+    "near_water": "lake", "distance_water_m": 0, "distance_town_m": 6000,
+    "rating_google": 4.3, "rating_p4n": 8.2,
+    "url_google": "https://maps.google.com/?q=Camping+Genève+Pointe+Bise",
+    "url_p4n": "https://park4night.com/lieu/12013",
+    "url_osm": "https://www.openstreetmap.org/node/111013", "website": null
+  },
+  {
+    "id": "ch-014", "name": "Bivouac Lötschental", "lat": 46.4120, "lng": 7.7430,
+    "canton": "VS", "type": "bivouac",
+    "amenities": [],
+    "near_water": "river", "distance_water_m": 50, "distance_town_m": 5000,
+    "rating_google": null, "rating_p4n": null,
+    "url_google": null, "url_p4n": null,
+    "url_osm": "https://www.openstreetmap.org/node/111014", "website": null
+  },
+  {
+    "id": "ch-015", "name": "Camping Walensee", "lat": 47.1190, "lng": 9.2120,
+    "canton": "SG", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","swimming","playground","bbq","dogs"],
+    "near_water": "lake", "distance_water_m": 15, "distance_town_m": 1800,
+    "rating_google": 4.5, "rating_p4n": 8.6,
+    "url_google": "https://maps.google.com/?q=Camping+Walensee+St.Gallen",
+    "url_p4n": "https://park4night.com/lieu/12015",
+    "url_osm": "https://www.openstreetmap.org/node/111015", "website": null
+  },
+  {
+    "id": "ch-016", "name": "Stellplatz Appenzell", "lat": 47.3320, "lng": 9.4080,
+    "canton": "AI", "type": "stellplatz",
+    "amenities": ["toilets","electricity"],
+    "near_water": null, "distance_water_m": null, "distance_town_m": 600,
+    "rating_google": 3.7, "rating_p4n": null,
+    "url_google": "https://maps.google.com/?q=Stellplatz+Appenzell",
+    "url_p4n": null, "url_osm": "https://www.openstreetmap.org/node/111016", "website": null
+  },
+  {
+    "id": "ch-017", "name": "Camping Lago di Lugano", "lat": 45.9680, "lng": 8.9520,
+    "canton": "TI", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","swimming","pool","playground","shop","restaurant","bikes"],
+    "near_water": "lake", "distance_water_m": 5, "distance_town_m": 3000,
+    "rating_google": 4.5, "rating_p4n": 8.9,
+    "url_google": "https://maps.google.com/?q=Camping+Lugano+lago",
+    "url_p4n": "https://park4night.com/lieu/12017",
+    "url_osm": "https://www.openstreetmap.org/node/111017", "website": null
+  },
+  {
+    "id": "ch-018", "name": "Biohof Rietmann", "lat": 47.4450, "lng": 9.0230,
+    "canton": "SG", "type": "farm",
+    "amenities": ["toilets","showers","bbq","dogs","playground"],
+    "near_water": null, "distance_water_m": null, "distance_town_m": 4500,
+    "rating_google": 4.9, "rating_p4n": 9.6,
+    "url_google": "https://maps.google.com/?q=Biohof+Rietmann+St.Gallen",
+    "url_p4n": "https://park4night.com/lieu/12018",
+    "url_osm": "https://www.openstreetmap.org/node/111018", "website": "https://biohof-rietmann.ch"
+  },
+  {
+    "id": "ch-019", "name": "Camping Rheinufer Rheinfelden", "lat": 47.5570, "lng": 7.7960,
+    "canton": "AG", "type": "campsite",
+    "amenities": ["toilets","showers","electricity","wifi","dogs","laundry"],
+    "near_water": "river", "distance_water_m": 25, "distance_town_m": 1000,
+    "rating_google": 4.1, "rating_p4n": 7.8,
+    "url_google": "https://maps.google.com/?q=Camping+Rheinufer+Rheinfelden",
+    "url_p4n": "https://park4night.com/lieu/12019",
+    "url_osm": "https://www.openstreetmap.org/node/111019", "website": null
+  },
+  {
+    "id": "ch-020", "name": "Stellplatz Thuner See", "lat": 46.7580, "lng": 7.6240,
+    "canton": "BE", "type": "stellplatz",
+    "amenities": ["toilets","electricity","wifi","swimming"],
+    "near_water": "lake", "distance_water_m": 80, "distance_town_m": 2200,
+    "rating_google": 4.3, "rating_p4n": 8.3,
+    "url_google": "https://maps.google.com/?q=Stellplatz+Thuner+See",
+    "url_p4n": "https://park4night.com/lieu/12020",
+    "url_osm": "https://www.openstreetmap.org/node/111020", "website": null
+  }
+]

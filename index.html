@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camping Switzerland</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; height: 100dvh; overflow: hidden; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width: 360px; min-width: 300px;
+      display: flex; flex-direction: column;
+      background: #fff;
+      box-shadow: 2px 0 8px rgba(0,0,0,.12);
+      z-index: 1000; overflow: hidden;
+    }
+    #sidebar-header {
+      padding: 12px 16px;
+      background: #2d6a4f; color: #fff; flex-shrink: 0;
+    }
+    #sidebar-header h1 { font-size: 16px; font-weight: 700; }
+    #sidebar-header p  { font-size: 11px; opacity: .75; margin-top: 1px; }
+    #count-badge {
+      display: inline-block; background: rgba(255,255,255,.25);
+      border-radius: 20px; padding: 1px 8px; font-size: 11px; margin-top: 4px;
+    }
+
+    /* ── Filter sections ── */
+    .filter-section {
+      padding: 10px 12px; border-bottom: 1px solid #eee; flex-shrink: 0;
+    }
+    .section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .5px; color: #999; margin-bottom: 6px; display: block;
+    }
+
+    /* ── Type toggles ── */
+    #type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+    .type-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 10px; border-radius: 8px;
+      border: 2px solid #e0e0e0; background: #f9f9f9;
+      font-size: 12px; font-weight: 500; color: #666;
+      cursor: pointer; transition: all .15s; text-align: left; line-height: 1.2;
+    }
+    .type-btn .tb-icon { font-size: 16px; flex-shrink: 0; }
+    .type-btn .tb-count { font-size: 10px; opacity: .65; }
+    .type-btn.active[data-type="campsite"]   { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
+    .type-btn.active[data-type="farm"]       { background: #795548; border-color: #795548; color: #fff; }
+    .type-btn.active[data-type="stellplatz"] { background: #546e7a; border-color: #546e7a; color: #fff; }
+    .type-btn.active[data-type="bivouac"]    { background: #e64a19; border-color: #e64a19; color: #fff; }
+
+    /* ── Canton + Rating row ── */
+    #location-row { display: flex; gap: 8px; }
+    #location-row > div { flex: 1; }
+    select, input[type="text"] {
+      width: 100%; padding: 7px 10px;
+      border: 1px solid #ddd; border-radius: 6px;
+      font-size: 13px; outline: none; background: #fff;
+    }
+    select:focus, input[type="text"]:focus { border-color: #2d6a4f; }
+
+    /* ── Chips ── */
+    .chip-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+    .chip {
+      padding: 3px 9px; border: 1px solid #ccc; border-radius: 20px;
+      font-size: 11px; cursor: pointer; background: #fff;
+      user-select: none; white-space: nowrap; transition: all .12s;
+    }
+    .chip.active { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
+    .chip.water.active { background: #1565c0; border-color: #1565c0; color: #fff; }
+
+    /* ── Actions ── */
+    #filter-actions { display: flex; align-items: center; justify-content: space-between; }
+    #btn-locate {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 11px; background: #2d6a4f; color: #fff;
+      border: none; border-radius: 6px; font-size: 12px; cursor: pointer;
+    }
+    #btn-locate:hover { background: #1b4332; }
+    #btn-clear { font-size: 11px; color: #2d6a4f; background: none; border: none; cursor: pointer; text-decoration: underline; }
+
+    /* ── List ── */
+    #list { flex: 1; overflow-y: auto; padding: 4px 0; }
+    .item {
+      padding: 9px 14px; border-bottom: 1px solid #f0f0f0;
+      cursor: pointer; transition: background .1s;
+      display: flex; gap: 8px; align-items: flex-start;
+    }
+    .item:hover { background: #f7faf8; }
+    .item.highlighted { background: #e8f5ee; }
+    .item-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .item-body { flex: 1; min-width: 0; }
+    .item-name { font-weight: 600; font-size: 13px; color: #1a1a1a; }
+    .item-sub  { font-size: 11px; color: #888; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .item-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+    .itag {
+      font-size: 10px; padding: 1px 6px; border-radius: 10px;
+      background: #e8f5ee; color: #2d6a4f;
+    }
+    .itag.water { background: #e3f2fd; color: #1565c0; }
+    .itag.rating { background: #fff8e1; color: #f57f17; }
+    .itag.type  { background: #f3f4f6; color: #555; }
+    .item-dist { font-size: 10px; color: #bbb; margin-top: 2px; }
+    #no-results { text-align: center; padding: 32px 16px; color: #aaa; font-size: 13px; display: none; }
+
+    /* ── Map ── */
+    #map { flex: 1; }
+
+    /* ── Popup ── */
+    .popup-type  { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 2px; }
+    .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .popup-chips { display: flex; flex-wrap: wrap; gap: 3px; margin-bottom: 8px; }
+    .popup-chip  { font-size: 11px; padding: 1px 7px; border-radius: 10px; background: #e8f5ee; color: #2d6a4f; }
+    .popup-chip.water { background: #e3f2fd; color: #1565c0; }
+    .popup-ratings { display: flex; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+    .popup-rating-box { display: flex; align-items: center; gap: 4px; }
+    .popup-links { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+    .popup-link {
+      display: inline-block; padding: 4px 10px; border-radius: 4px;
+      text-decoration: none; font-size: 11px; color: #fff !important;
+    }
+    .popup-link.google { background: #1a73e8; }
+    .popup-link.p4n    { background: #e8871a; }
+    .popup-link.osm    { background: #3949ab; }
+    .popup-link.web    { background: #2d6a4f; }
+
+    /* ── Loading ── */
+    #loading {
+      position: fixed; inset: 0; background: rgba(255,255,255,.92);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999; gap: 10px;
+    }
+    .spinner {
+      width: 36px; height: 36px; border: 4px solid #ddd;
+      border-top-color: #2d6a4f; border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-text { font-size: 14px; color: #555; }
+    #loading small { font-size: 11px; color: #aaa; }
+
+    /* ── Mobile bottom sheet ── */
+    @media (max-width: 640px) {
+      body { flex-direction: column; position: relative; }
+      #map { height: 100dvh; width: 100%; position: fixed; top: 0; left: 0; z-index: 1; }
+      #sidebar {
+        position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
+        height: 210px; max-height: 92dvh;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,.18);
+        z-index: 1001; transition: height .3s cubic-bezier(.4,0,.2,1); overflow: hidden;
+      }
+      #sidebar.expanded { height: 88dvh; }
+      #drag-handle {
+        display: flex; justify-content: center; align-items: center;
+        padding: 8px 0 4px; cursor: pointer; flex-shrink: 0;
+        background: #fff; border-radius: 16px 16px 0 0;
+      }
+      #drag-handle-bar { width: 36px; height: 4px; background: #ddd; border-radius: 2px; }
+      #sidebar:not(.expanded) #list { display: none; }
+      #expand-hint { display: block; text-align: center; font-size: 11px; color: #aaa; padding: 2px 0 6px; flex-shrink: 0; }
+      #sidebar.expanded #expand-hint { display: none; }
+    }
+    @media (min-width: 641px) {
+      #drag-handle { display: none; }
+      #expand-hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <p id="loading-text">Loading camps…</p>
+  <small>OpenStreetMap · Park4Night</small>
+</div>
+
+<div id="sidebar">
+  <div id="drag-handle"><div id="drag-handle-bar"></div></div>
+  <div id="expand-hint">Tap to expand filters ▲</div>
+
+  <div id="sidebar-header">
+    <h1>⛺ Camping Switzerland</h1>
+    <p>Campsites · Farms · Stellplätze · Bivouacs</p>
+    <span id="count-badge">Loading…</span>
+  </div>
+
+  <!-- Type toggles -->
+  <div class="filter-section">
+    <span class="section-label">Type — click to show / hide</span>
+    <div id="type-grid">
+      <button class="type-btn active" data-type="campsite">
+        <span class="tb-icon">⛺</span>
+        <span><div>Campsite</div><div class="tb-count" id="cnt-campsite"></div></span>
+      </button>
+      <button class="type-btn active" data-type="farm">
+        <span class="tb-icon">🚜</span>
+        <span><div>Farm camping</div><div class="tb-count" id="cnt-farm"></div></span>
+      </button>
+      <button class="type-btn active" data-type="stellplatz">
+        <span class="tb-icon">🚐</span>
+        <span><div>Stellplatz</div><div class="tb-count" id="cnt-stellplatz"></div></span>
+      </button>
+      <button class="type-btn active" data-type="bivouac">
+        <span class="tb-icon">🏕️</span>
+        <span><div>Bivouac</div><div class="tb-count" id="cnt-bivouac"></div></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Canton + Rating -->
+  <div class="filter-section">
+    <div id="location-row">
+      <div>
+        <span class="section-label">Canton</span>
+        <select id="canton-filter">
+          <option value="">All cantons</option>
+          <option value="AG">AG – Aargau</option>
+          <option value="AI">AI – Appenzell I.Rh.</option>
+          <option value="AR">AR – Appenzell A.Rh.</option>
+          <option value="BE">BE – Bern</option>
+          <option value="BL">BL – Basel-Landschaft</option>
+          <option value="BS">BS – Basel-Stadt</option>
+          <option value="FR">FR – Fribourg</option>
+          <option value="GE">GE – Geneva</option>
+          <option value="GL">GL – Glarus</option>
+          <option value="GR">GR – Graubünden</option>
+          <option value="JU">JU – Jura</option>
+          <option value="LU">LU – Lucerne</option>
+          <option value="NE">NE – Neuchâtel</option>
+          <option value="NW">NW – Nidwalden</option>
+          <option value="OW">OW – Obwalden</option>
+          <option value="SG">SG – St. Gallen</option>
+          <option value="SH">SH – Schaffhausen</option>
+          <option value="SO">SO – Solothurn</option>
+          <option value="SZ">SZ – Schwyz</option>
+          <option value="TG">TG – Thurgau</option>
+          <option value="TI">TI – Ticino</option>
+          <option value="UR">UR – Uri</option>
+          <option value="VD">VD – Vaud</option>
+          <option value="VS">VS – Valais</option>
+          <option value="ZG">ZG – Zug</option>
+          <option value="ZH">ZH – Zurich</option>
+        </select>
+      </div>
+      <div>
+        <span class="section-label">Min. Google rating</span>
+        <select id="rating-filter">
+          <option value="">Any</option>
+          <option value="3">3.0+</option>
+          <option value="3.5">3.5+</option>
+          <option value="4">4.0+</option>
+          <option value="4.5">4.5+</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Amenities -->
+  <div class="filter-section">
+    <span class="section-label">Amenities</span>
+    <div class="chip-grid" id="amenity-chips"></div>
+  </div>
+
+  <!-- Water & surroundings -->
+  <div class="filter-section">
+    <span class="section-label">Water & surroundings</span>
+    <div class="chip-grid" id="water-chips"></div>
+  </div>
+
+  <!-- Search + actions -->
+  <div class="filter-section">
+    <input type="text" id="search" placeholder="Search by name…" style="margin-bottom:8px;" />
+    <div id="filter-actions">
+      <button id="btn-locate">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        </svg>
+        Near me
+      </button>
+      <button id="btn-clear">Reset all</button>
+    </div>
+  </div>
+
+  <div id="list">
+    <div id="no-results">No results found.</div>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+
+// ── Data URL ──────────────────────────────────────────────────────────────────
+// Replace with raw GitHub URL once data repo is ready
+const DATA_URL = null; // null = use inline sample data below
+
+// ── Sample data (replace with fetch from DATA_URL) ───────────────────────────
+const SAMPLE_DATA = [
+  {
+    id: "osm-1", name: "Camping Fischers Fritz", lat: 47.3980, lng: 8.3420,
+    canton: "ZH", type: "campsite",
+    amenities: ["toilets","showers","electricity","wifi","playground","dogs"],
+    near_water: "lake", distance_water_m: 50, distance_town_m: 2000,
+    rating_google: 4.3, rating_p4n: 8.1,
+    url_google: "https://maps.google.com/?q=Camping+Fischers+Fritz",
+    url_p4n: null, url_osm: "https://www.openstreetmap.org/node/1",
+    website: null
+  },
+  {
+    id: "osm-2", name: "Bauernhof Müller", lat: 46.9480, lng: 7.4474,
+    canton: "BE", type: "farm",
+    amenities: ["toilets","dogs","bbq"],
+    near_water: "river", distance_water_m: 300, distance_town_m: 5000,
+    rating_google: 4.7, rating_p4n: 9.2,
+    url_google: "https://maps.google.com/?q=Bauernhof+Müller",
+    url_p4n: "https://park4night.com/lieu/99999",
+    url_osm: "https://www.openstreetmap.org/node/2", website: null
+  },
+  {
+    id: "osm-3", name: "Stellplatz am Rhein", lat: 47.6970, lng: 8.6310,
+    canton: "SH", type: "stellplatz",
+    amenities: ["toilets","electricity","wifi"],
+    near_water: "river", distance_water_m: 20, distance_town_m: 800,
+    rating_google: 3.9, rating_p4n: null,
+    url_google: "https://maps.google.com/?q=Stellplatz+Rhein",
+    url_p4n: null, url_osm: "https://www.openstreetmap.org/node/3",
+    website: null
+  },
+  {
+    id: "osm-4", name: "Bivouac Greina", lat: 46.6100, lng: 8.9900,
+    canton: "GR", type: "bivouac",
+    amenities: [],
+    near_water: "river", distance_water_m: 100, distance_town_m: 15000,
+    rating_google: null, rating_p4n: null,
+    url_google: null, url_p4n: null,
+    url_osm: "https://www.openstreetmap.org/node/4", website: null
+  },
+  {
+    id: "osm-5", name: "Camping Delta", lat: 46.0037, lng: 8.9511,
+    canton: "TI", type: "campsite",
+    amenities: ["toilets","showers","electricity","wifi","pool","swimming","playground","restaurant","shop","bikes","accessible"],
+    near_water: "lake", distance_water_m: 0, distance_town_m: 1000,
+    rating_google: 4.6, rating_p4n: 8.8,
+    url_google: "https://maps.google.com/?q=Camping+Delta+Locarno",
+    url_p4n: "https://park4night.com/lieu/88888",
+    url_osm: "https://www.openstreetmap.org/node/5", website: "https://campingdelta.com"
+  },
+  {
+    id: "osm-6", name: "TCS Camping Interlaken", lat: 46.6863, lng: 7.8632,
+    canton: "BE", type: "campsite",
+    amenities: ["toilets","showers","electricity","wifi","swimming","playground","laundry","dogs"],
+    near_water: "lake", distance_water_m: 200, distance_town_m: 1500,
+    rating_google: 4.2, rating_p4n: 8.0,
+    url_google: "https://maps.google.com/?q=TCS+Camping+Interlaken",
+    url_p4n: "https://park4night.com/lieu/77777",
+    url_osm: "https://www.openstreetmap.org/node/6", website: null
+  },
+  {
+    id: "osm-7", name: "Camping Gampelen", lat: 47.0070, lng: 7.0620,
+    canton: "BE", type: "campsite",
+    amenities: ["toilets","showers","electricity","dogs","bbq"],
+    near_water: "lake", distance_water_m: 500, distance_town_m: 3000,
+    rating_google: 3.8, rating_p4n: null,
+    url_google: null, url_p4n: null,
+    url_osm: "https://www.openstreetmap.org/node/7", website: null
+  },
+  {
+    id: "osm-8", name: "Hof Zumbrunnen", lat: 46.7667, lng: 8.5833,
+    canton: "UR", type: "farm",
+    amenities: ["toilets","bbq","dogs"],
+    near_water: null, distance_water_m: null, distance_town_m: 8000,
+    rating_google: 5.0, rating_p4n: 9.8,
+    url_google: "https://maps.google.com/?q=Hof+Zumbrunnen+Uri",
+    url_p4n: "https://park4night.com/lieu/66666",
+    url_osm: "https://www.openstreetmap.org/node/8", website: null
+  },
+];
+
+// ── Type config ───────────────────────────────────────────────────────────────
+const TYPES = {
+  campsite:   { color: '#2d6a4f', emoji: '⛺', label: 'Campsite' },
+  farm:       { color: '#795548', emoji: '🚜', label: 'Farm camping' },
+  stellplatz: { color: '#546e7a', emoji: '🚐', label: 'Stellplatz' },
+  bivouac:    { color: '#e64a19', emoji: '🏕️', label: 'Bivouac' },
+};
+
+// ── Amenity chips config ──────────────────────────────────────────────────────
+const AMENITY_CHIPS = [
+  { key: 'toilets',     label: '🚻 Toilets' },
+  { key: 'showers',     label: '🚿 Showers' },
+  { key: 'electricity', label: '⚡ Electricity' },
+  { key: 'wifi',        label: '📶 WiFi' },
+  { key: 'pool',        label: '🏊 Pool' },
+  { key: 'swimming',    label: '🏖️ Swimming' },
+  { key: 'playground',  label: '🛝 Playground' },
+  { key: 'restaurant',  label: '🍽️ Restaurant' },
+  { key: 'shop',        label: '🛒 Shop' },
+  { key: 'dogs',        label: '🐕 Dogs OK' },
+  { key: 'bbq',         label: '🔥 BBQ' },
+  { key: 'bikes',       label: '🚲 Bike rental' },
+  { key: 'laundry',     label: '🧺 Laundry' },
+  { key: 'accessible',  label: '♿ Accessible' },
+];
+
+const WATER_CHIPS = [
+  { key: 'lake',        label: '🏞️ Lake nearby',   filterFn: c => c.near_water === 'lake' },
+  { key: 'river',       label: '🌊 River nearby',  filterFn: c => c.near_water === 'river' },
+  { key: 'swimming_any',label: '🏊 Can swim',       filterFn: c => c.amenities.includes('swimming') || c.amenities.includes('pool') },
+  { key: 'town_3km',    label: '🏘️ Town < 3 km',   filterFn: c => c.distance_town_m !== null && c.distance_town_m <= 3000 },
+  { key: 'has_reviews', label: '⭐ Has reviews',    filterFn: c => c.rating_google !== null || c.rating_p4n !== null },
+];
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let allCamps = [];
+let markers = {};
+let activeTypes = new Set(Object.keys(TYPES));
+let activeAmenities = new Set();
+let activeWater = new Set();
+let clusterGroups = {};
+let userLat = null, userLng = null;
+let lastKey = null;
+
+// ── Map ───────────────────────────────────────────────────────────────────────
+const map = L.map('map').setView([46.8182, 8.2275], 8);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19,
+}).addTo(map);
+
+Object.keys(TYPES).forEach(type => {
+  clusterGroups[type] = L.markerClusterGroup({ maxClusterRadius: 50 });
+  map.addLayer(clusterGroups[type]);
+});
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+function makeIcon(color, emoji, size) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:${size}px;height:${size}px;background:${color};border:2px solid #fff;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.42)}px;">${emoji}</div>`,
+    iconSize: [size, size], iconAnchor: [size/2, size/2],
+  });
+}
+const typeIcons = {};
+Object.entries(TYPES).forEach(([t, c]) => { typeIcons[t] = makeIcon(c.color, c.emoji, 28); });
+const iconHL = makeIcon('#37474f', '📍', 32);
+
+// ── Popup ─────────────────────────────────────────────────────────────────────
+function buildPopup(c) {
+  const t = TYPES[c.type];
+  const amenityChips = c.amenities.map(a => {
+    const chip = AMENITY_CHIPS.find(x => x.key === a);
+    return chip ? `<span class="popup-chip">${chip.label}</span>` : '';
+  }).join('');
+  const waterLine = c.near_water
+    ? `<span class="popup-chip water">${c.near_water === 'lake' ? '🏞️ Lake' : '🌊 River'} ${c.distance_water_m !== null ? `· ${fmtDist(c.distance_water_m)}` : ''}</span>`
+    : '';
+  const townLine = c.distance_town_m !== null
+    ? `<span class="popup-chip">🏘️ Town ${fmtDist(c.distance_town_m)}</span>` : '';
+
+  const ratings = [];
+  if (c.rating_google) ratings.push(`<span class="popup-rating-box">🌐 Google <strong>${c.rating_google.toFixed(1)}</strong>/5</span>`);
+  if (c.rating_p4n)    ratings.push(`<span class="popup-rating-box">🅿️ P4N <strong>${c.rating_p4n.toFixed(1)}</strong>/10</span>`);
+
+  const links = [];
+  if (c.url_google) links.push(`<a class="popup-link google" href="${c.url_google}" target="_blank" rel="noopener">Google Maps ↗</a>`);
+  if (c.url_p4n)    links.push(`<a class="popup-link p4n"    href="${c.url_p4n}"    target="_blank" rel="noopener">Park4Night ↗</a>`);
+  if (c.website)    links.push(`<a class="popup-link web"    href="${c.website}"    target="_blank" rel="noopener">Website ↗</a>`);
+  links.push(`<a class="popup-link osm" href="${c.url_osm}" target="_blank" rel="noopener">OSM ↗</a>`);
+
+  return `<div style="min-width:230px;max-width:300px;">
+    <div class="popup-type" style="color:${t.color};">${t.emoji} ${t.label} · ${c.canton}</div>
+    <div class="popup-title">${c.name || t.label}</div>
+    ${ratings.length ? `<div class="popup-ratings">${ratings.join('')}</div>` : ''}
+    <div class="popup-chips">${waterLine}${townLine}${amenityChips}</div>
+    <div class="popup-links">${links.join('')}</div>
+  </div>`;
+}
+
+// ── Distance ──────────────────────────────────────────────────────────────────
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (lat2 - lat1) * r, dLng = (lng2 - lng1) * r;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*r) * Math.cos(lat2*r) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} km`;
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function getFiltered() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const canton = document.getElementById('canton-filter').value;
+  const minRating = parseFloat(document.getElementById('rating-filter').value) || 0;
+
+  return allCamps.filter(c => {
+    if (!activeTypes.has(c.type)) return false;
+    if (q && !c.name.toLowerCase().includes(q)) return false;
+    if (canton && c.canton !== canton) return false;
+    if (minRating > 0 && (c.rating_google === null || c.rating_google < minRating)) return false;
+    for (const a of activeAmenities) if (!c.amenities.includes(a)) return false;
+    for (const w of activeWater) {
+      const wc = WATER_CHIPS.find(x => x.key === w);
+      if (wc && !wc.filterFn(c)) return false;
+    }
+    return true;
+  });
+}
+
+// ── Render list ───────────────────────────────────────────────────────────────
+function renderList(filtered) {
+  document.querySelectorAll('.item').forEach(el => el.remove());
+  document.getElementById('no-results').style.display = filtered.length ? 'none' : 'block';
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (userLat !== null) return haversine(userLat, userLng, a.lat, a.lng) - haversine(userLat, userLng, b.lat, b.lng);
+    return (a.name || '').localeCompare(b.name || '', 'en');
+  });
+
+  const list = document.getElementById('list');
+  sorted.forEach(c => {
+    const t = TYPES[c.type];
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.dataset.key = c.id;
+
+    const chips = [];
+    chips.push(`<span class="itag type">${t.emoji} ${t.label}</span>`);
+    chips.push(`<span class="itag type">${c.canton}</span>`);
+    if (c.near_water) chips.push(`<span class="itag water">${c.near_water === 'lake' ? '🏞️' : '🌊'} ${c.near_water}</span>`);
+    if (c.rating_google) chips.push(`<span class="itag rating">⭐ ${c.rating_google.toFixed(1)}</span>`);
+    c.amenities.slice(0, 3).forEach(a => {
+      const chip = AMENITY_CHIPS.find(x => x.key === a);
+      if (chip) chips.push(`<span class="itag">${chip.label}</span>`);
+    });
+    if (c.amenities.length > 3) chips.push(`<span class="itag">+${c.amenities.length - 3}</span>`);
+
+    const dist = userLat !== null
+      ? `<div class="item-dist">📍 ${fmtDist(haversine(userLat, userLng, c.lat, c.lng))}</div>` : '';
+
+    el.innerHTML = `
+      <div class="item-dot" style="background:${t.color};"></div>
+      <div class="item-body">
+        <div class="item-name">${c.name || `<span style="color:#aaa;font-style:italic">${t.label}</span>`}</div>
+        <div class="item-chips">${chips.join('')}</div>
+        ${dist}
+      </div>`;
+    el.addEventListener('click', () => highlight(c.id));
+    list.appendChild(el);
+  });
+}
+
+// ── Update map ────────────────────────────────────────────────────────────────
+function updateMap(filtered) {
+  Object.values(clusterGroups).forEach(g => g.clearLayers());
+  markers = {};
+  filtered.forEach(c => {
+    const m = L.marker([c.lat, c.lng], { icon: typeIcons[c.type] })
+      .bindPopup(buildPopup(c), { maxWidth: 320 });
+    m.on('click', () => {
+      document.querySelectorAll('.item').forEach(el =>
+        el.classList.toggle('highlighted', el.dataset.key === c.id));
+      document.querySelector(`.item[data-key="${c.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      lastKey = c.id;
+    });
+    markers[c.id] = m;
+    clusterGroups[c.type].addLayer(m);
+  });
+}
+
+// ── Highlight ─────────────────────────────────────────────────────────────────
+function highlight(id) {
+  if (lastKey && markers[lastKey]) {
+    const prev = allCamps.find(c => c.id === lastKey);
+    if (prev) markers[lastKey].setIcon(typeIcons[prev.type]);
+  }
+  document.querySelectorAll('.item').forEach(el =>
+    el.classList.toggle('highlighted', el.dataset.key === id));
+  const m = markers[id];
+  const c = allCamps.find(x => x.id === id);
+  if (m && c) {
+    m.setIcon(iconHL);
+    clusterGroups[c.type].zoomToShowLayer(m, () => m.openPopup());
+  }
+  lastKey = id;
+}
+
+// ── Apply filters ─────────────────────────────────────────────────────────────
+function applyFilters() {
+  const filtered = getFiltered();
+  const total = {}, show = {};
+  Object.keys(TYPES).forEach(t => { total[t] = 0; show[t] = 0; });
+  allCamps.forEach(c => total[c.type]++);
+  filtered.forEach(c => show[c.type]++);
+  Object.keys(TYPES).forEach(t => {
+    document.getElementById(`cnt-${t}`).textContent = `${show[t]} / ${total[t]}`;
+  });
+  document.getElementById('count-badge').textContent = `${filtered.length} of ${allCamps.length}`;
+  renderList(filtered);
+  updateMap(filtered);
+}
+
+// ── Build chips ───────────────────────────────────────────────────────────────
+function buildChips() {
+  const ac = document.getElementById('amenity-chips');
+  AMENITY_CHIPS.forEach(({ key, label }) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = label;
+    chip.addEventListener('click', () => {
+      activeAmenities.has(key) ? activeAmenities.delete(key) : activeAmenities.add(key);
+      chip.classList.toggle('active');
+      applyFilters();
+    });
+    ac.appendChild(chip);
+  });
+
+  const wc = document.getElementById('water-chips');
+  WATER_CHIPS.forEach(({ key, label }) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip water';
+    chip.textContent = label;
+    chip.addEventListener('click', () => {
+      activeWater.has(key) ? activeWater.delete(key) : activeWater.add(key);
+      chip.classList.toggle('active');
+      applyFilters();
+    });
+    wc.appendChild(chip);
+  });
+}
+
+// ── Type buttons ──────────────────────────────────────────────────────────────
+document.querySelectorAll('.type-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const type = btn.dataset.type;
+    if (activeTypes.has(type)) {
+      activeTypes.delete(type);
+      map.removeLayer(clusterGroups[type]);
+    } else {
+      activeTypes.add(type);
+      map.addLayer(clusterGroups[type]);
+    }
+    btn.classList.toggle('active', activeTypes.has(type));
+    applyFilters();
+  });
+});
+
+// ── Locate ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-locate').addEventListener('click', () => {
+  if (!navigator.geolocation) return alert('Geolocation not available.');
+  navigator.geolocation.getCurrentPosition(pos => {
+    userLat = pos.coords.latitude;
+    userLng = pos.coords.longitude;
+    L.circleMarker([userLat, userLng], { radius: 8, color: '#2d6a4f', fillOpacity: .8 })
+      .addTo(map).bindPopup('Your location');
+    map.setView([userLat, userLng], 12);
+    applyFilters();
+  }, () => alert('Could not determine your location.'));
+});
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+  document.getElementById('search').value = '';
+  document.getElementById('canton-filter').value = '';
+  document.getElementById('rating-filter').value = '';
+  activeAmenities.clear();
+  activeWater.clear();
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  activeTypes = new Set(Object.keys(TYPES));
+  document.querySelectorAll('.type-btn').forEach(b => {
+    b.classList.add('active');
+    map.addLayer(clusterGroups[b.dataset.type]);
+  });
+  userLat = null; userLng = null;
+  applyFilters();
+  map.setView([46.8182, 8.2275], 8);
+});
+
+document.getElementById('search').addEventListener('input', applyFilters);
+document.getElementById('canton-filter').addEventListener('change', applyFilters);
+document.getElementById('rating-filter').addEventListener('change', applyFilters);
+
+// ── Load data ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    if (DATA_URL) {
+      document.getElementById('loading-text').textContent = 'Loading camps…';
+      const res = await fetch(DATA_URL);
+      allCamps = await res.json();
+    } else {
+      allCamps = SAMPLE_DATA;
+    }
+    buildChips();
+    applyFilters();
+    document.getElementById('loading').style.display = 'none';
+  } catch (err) {
+    document.getElementById('loading').innerHTML =
+      `<p style="color:#c00;padding:20px;text-align:center;">Error loading data:<br>${err.message}</p>`;
+  }
+}
+loadData();
+
+// ── Mobile bottom sheet ───────────────────────────────────────────────────────
+(function() {
+  const sidebar = document.getElementById('sidebar');
+  const handle   = document.getElementById('drag-handle');
+  const hint     = document.getElementById('expand-hint');
+  const toggle   = () => sidebar.classList.toggle('expanded');
+  handle.addEventListener('click', toggle);
+  hint.addEventListener('click', toggle);
+  let startY = 0;
+  sidebar.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+  sidebar.addEventListener('touchend', e => {
+    const dy = startY - e.changedTouches[0].clientY;
+    if (dy > 40)  sidebar.classList.add('expanded');
+    if (dy < -40) sidebar.classList.remove('expanded');
+  }, { passive: true });
+  document.getElementById('map').addEventListener('click', () => {
+    if (window.innerWidth <= 640) sidebar.classList.remove('expanded');
+  });
+})();
+
+</script>
+</body>
+</html>
