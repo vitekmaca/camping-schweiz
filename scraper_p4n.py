@@ -18,6 +18,32 @@ import requests
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
+CANTON_MAP = {
+    "Aargau": "AG", "Appenzell Innerrhoden": "AI", "Appenzell Ausserrhoden": "AR",
+    "Bern": "BE", "Berne": "BE", "Basel-Landschaft": "BL", "Basel-Stadt": "BS",
+    "Fribourg": "FR", "Freiburg": "FR",
+    "Geneva": "GE", "Genève": "GE", "Genf": "GE",
+    "Glarus": "GL",
+    "Graubünden": "GR", "Grischun": "GR", "Grigioni": "GR",
+    "Jura": "JU", "Luzern": "LU", "Lucerne": "LU",
+    "Neuchâtel": "NE", "Neuenburg": "NE",
+    "Nidwalden": "NW", "Obwalden": "OW",
+    "St. Gallen": "SG", "Sankt Gallen": "SG",
+    "Schaffhausen": "SH", "Solothurn": "SO", "Schwyz": "SZ", "Thurgau": "TG",
+    "Ticino": "TI", "Uri": "UR", "Vaud": "VD",
+    "Valais": "VS", "Wallis": "VS",
+    "Zug": "ZG", "Zürich": "ZH", "Zurich": "ZH",
+}
+
+def canton_from_address(address):
+    """Extract canton code from P4N address dict (state field)."""
+    state = address.get("state", "") or ""
+    for part in state.split("/"):
+        code = CANTON_MAP.get(part.strip())
+        if code:
+            return code
+    return "?"
+
 P4N_API     = "https://park4night.com/api/places/around"
 HEADERS     = {"User-Agent": "Mozilla/5.0 (personal camping map project)"}
 DATA_FILE   = "data.json"
@@ -59,10 +85,11 @@ def fetch_grid():
                 }, headers=HEADERS, timeout=20)
                 r.raise_for_status()
                 places = json.loads(base64.b64decode(r.content).decode("utf-8"))
-                new = sum(1 for p in places if p["id"] not in seen)
-                for p in places:
+                ch_only = [p for p in places if p.get("address", {}).get("country") == "Switzerland"]
+                new = sum(1 for p in ch_only if p["id"] not in seen)
+                for p in ch_only:
                     seen[p["id"]] = p
-                print(f"{len(places)} results, {new} new  (total unique: {len(seen)})")
+                print(f"{len(places)} results ({len(ch_only)} CH), {new} new  (total unique: {len(seen)})")
             except Exception as e:
                 print(f"ERROR: {e}")
             time.sleep(SLEEP)
@@ -145,7 +172,7 @@ def merge(osm_camps, p4n_places):
                 "name":             place.get("name", ""),
                 "lat":              plat,
                 "lng":              plng,
-                "canton":           "?",   # no OSM data, would need Nominatim
+                "canton":           canton_from_address(place.get("address", {})),
                 "type":             type_map.get(p4n_type, "campsite"),
                 "amenities":        amenities,
                 "near_water":       None,
