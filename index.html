@@ -216,36 +216,8 @@
 
   <!-- Canton + Rating -->
   <div class="filter-section">
-    <span class="section-label">Canton</span>
-    <select id="canton-filter" style="margin-bottom:8px;">
-      <option value="">All cantons</option>
-      <option value="AG">AG – Aargau</option>
-      <option value="AI">AI – Appenzell I.Rh.</option>
-      <option value="AR">AR – Appenzell A.Rh.</option>
-      <option value="BE">BE – Bern</option>
-      <option value="BL">BL – Basel-Landschaft</option>
-      <option value="BS">BS – Basel-Stadt</option>
-      <option value="FR">FR – Fribourg</option>
-      <option value="GE">GE – Geneva</option>
-      <option value="GL">GL – Glarus</option>
-      <option value="GR">GR – Graubünden</option>
-      <option value="JU">JU – Jura</option>
-      <option value="LU">LU – Lucerne</option>
-      <option value="NE">NE – Neuchâtel</option>
-      <option value="NW">NW – Nidwalden</option>
-      <option value="OW">OW – Obwalden</option>
-      <option value="SG">SG – St. Gallen</option>
-      <option value="SH">SH – Schaffhausen</option>
-      <option value="SO">SO – Solothurn</option>
-      <option value="SZ">SZ – Schwyz</option>
-      <option value="TG">TG – Thurgau</option>
-      <option value="TI">TI – Ticino</option>
-      <option value="UR">UR – Uri</option>
-      <option value="VD">VD – Vaud</option>
-      <option value="VS">VS – Valais</option>
-      <option value="ZG">ZG – Zug</option>
-      <option value="ZH">ZH – Zurich</option>
-    </select>
+    <span class="section-label">Canton <span id="canton-count" style="font-weight:400;text-transform:none;"></span></span>
+    <div class="chip-grid" id="canton-chips" style="margin-bottom:8px;"></div>
     <div id="location-row">
       <div>
         <span class="section-label">🌐 Min. Google rating</span>
@@ -433,6 +405,16 @@ let markers = {};
 let activeTypes = new Set(Object.keys(TYPES));
 let activeAmenities = new Set();
 let activeWater = new Set();
+let activeCantons = new Set();
+
+const CANTONS = [
+  ['AG','Aargau'],['AI','App. I.Rh.'],['AR','App. A.Rh.'],['BE','Bern'],
+  ['BL','Basel-Land.'],['BS','Basel-Stadt'],['FR','Fribourg'],['GE','Geneva'],
+  ['GL','Glarus'],['GR','Graubünden'],['JU','Jura'],['LU','Lucerne'],
+  ['NE','Neuchâtel'],['NW','Nidwalden'],['OW','Obwalden'],['SG','St. Gallen'],
+  ['SH','Schaffhausen'],['SO','Solothurn'],['SZ','Schwyz'],['TG','Thurgau'],
+  ['TI','Ticino'],['UR','Uri'],['VD','Vaud'],['VS','Valais'],['ZG','Zug'],['ZH','Zurich'],
+];
 let clusterGroups = {};
 let userLat = null, userLng = null;
 let lastKey = null;
@@ -445,7 +427,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 Object.keys(TYPES).forEach(type => {
-  clusterGroups[type] = L.markerClusterGroup({ maxClusterRadius: 50 });
+  clusterGroups[type] = L.markerClusterGroup({ maxClusterRadius: 80, disableClusteringAtZoom: 13 });
   map.addLayer(clusterGroups[type]);
 });
 
@@ -486,7 +468,10 @@ fetch(CANTON_GEOJSON_URL)
           cantonLabel.style.opacity = '0';
         });
         layer.on('click', function() {
-          document.getElementById('canton-filter').value = code;
+          activeCantons.has(code) ? activeCantons.delete(code) : activeCantons.add(code);
+          const chip = document.querySelector(`#canton-chips [data-canton="${code}"]`);
+          if (chip) chip.classList.toggle('active', activeCantons.has(code));
+          updateCantonCount();
           applyFilters();
         });
       },
@@ -504,7 +489,7 @@ function makeIcon(color, emoji, size) {
   });
 }
 const typeIcons = {};
-Object.entries(TYPES).forEach(([t, c]) => { typeIcons[t] = makeIcon(c.color, c.emoji, 28); });
+Object.entries(TYPES).forEach(([t, c]) => { typeIcons[t] = makeIcon(c.color, c.emoji, 20); });
 const iconHL = makeIcon('#37474f', '📍', 32);
 
 // ── Popup ─────────────────────────────────────────────────────────────────────
@@ -551,14 +536,13 @@ const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} k
 // ── Filter ────────────────────────────────────────────────────────────────────
 function getFiltered() {
   const q = document.getElementById('search').value.toLowerCase();
-  const canton = document.getElementById('canton-filter').value;
   const minRating    = parseFloat(document.getElementById('rating-filter').value) || 0;
   const minP4nRating = parseFloat(document.getElementById('p4n-rating-filter').value) || 0;
 
   return allCamps.filter(c => {
     if (!activeTypes.has(c.type)) return false;
     if (q && !c.name.toLowerCase().includes(q)) return false;
-    if (canton && c.canton !== canton) return false;
+    if (activeCantons.size > 0 && !activeCantons.has(c.canton)) return false;
     if (minRating    > 0 && (c.rating_google === null || c.rating_google < minRating))    return false;
     if (minP4nRating > 0 && (c.rating_p4n   === null || c.rating_p4n   < minP4nRating)) return false;
     for (const a of activeAmenities) if (!c.amenities.includes(a)) return false;
@@ -663,6 +647,11 @@ function applyFilters() {
   updateMap(filtered);
 }
 
+function updateCantonCount() {
+  const el = document.getElementById('canton-count');
+  if (el) el.textContent = activeCantons.size > 0 ? `(${activeCantons.size})` : '';
+}
+
 // ── Build chips ───────────────────────────────────────────────────────────────
 function buildChips() {
   const ac = document.getElementById('amenity-chips');
@@ -689,6 +678,22 @@ function buildChips() {
       applyFilters();
     });
     wc.appendChild(chip);
+  });
+
+  const cc = document.getElementById('canton-chips');
+  CANTONS.forEach(([code, name]) => {
+    const chip = document.createElement('span');
+    chip.className = 'chip canton';
+    chip.dataset.canton = code;
+    chip.textContent = code;
+    chip.title = name;
+    chip.addEventListener('click', () => {
+      activeCantons.has(code) ? activeCantons.delete(code) : activeCantons.add(code);
+      chip.classList.toggle('active');
+      updateCantonCount();
+      applyFilters();
+    });
+    cc.appendChild(chip);
   });
 }
 
@@ -724,12 +729,13 @@ document.getElementById('btn-locate').addEventListener('click', () => {
 // ── Reset ─────────────────────────────────────────────────────────────────────
 document.getElementById('btn-clear').addEventListener('click', () => {
   document.getElementById('search').value = '';
-  document.getElementById('canton-filter').value = '';
   document.getElementById('rating-filter').value = '';
   document.getElementById('p4n-rating-filter').value = '';
   activeAmenities.clear();
   activeWater.clear();
+  activeCantons.clear();
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  updateCantonCount();
   activeTypes = new Set(Object.keys(TYPES));
   document.querySelectorAll('.type-btn').forEach(b => {
     b.classList.add('active');
@@ -741,7 +747,6 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 });
 
 document.getElementById('search').addEventListener('input', applyFilters);
-document.getElementById('canton-filter').addEventListener('change', applyFilters);
 document.getElementById('rating-filter').addEventListener('change', applyFilters);
 document.getElementById('p4n-rating-filter').addEventListener('change', applyFilters);
 
