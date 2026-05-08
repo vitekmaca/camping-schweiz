@@ -67,7 +67,12 @@ def get_canton(lat, lng):
         }, headers=HEADERS, timeout=10)
         r.raise_for_status()
         state = r.json().get("address", {}).get("state", "")
-        return CANTON_MAP.get(state, "?")
+        # Nominatim returns multilingual names like "Bern/Berne" or "Valais/Wallis"
+        for part in state.split("/"):
+            code = CANTON_MAP.get(part.strip())
+            if code:
+                return code
+        return "?"
     except Exception:
         return "?"
 
