@@ -50,14 +50,11 @@
     }
     .section-dot.visible { opacity: 1; }
     .section-arrow {
-      font-size: 10px; color: #bbb; transition: transform .2s; flex-shrink: 0;
+      font-size: 11px; color: #aaa; transition: transform .2s; flex-shrink: 0; line-height: 1;
     }
     .filter-section.collapsed .section-arrow { transform: rotate(-90deg); }
-    .section-body {
-      padding: 0 12px; overflow: hidden;
-      max-height: 600px; transition: max-height .25s ease, padding .25s ease;
-    }
-    .filter-section.collapsed .section-body { max-height: 0; padding-top: 0; padding-bottom: 0; }
+    .section-body { padding: 0 12px; }
+    .section-body.hidden { display: none; }
     .section-body-inner { padding-bottom: 10px; }
 
     /* ── Type toggles ── */
@@ -75,6 +72,18 @@
     .type-btn.active[data-type="farm"]       { background: #795548; border-color: #795548; color: #fff; }
     .type-btn.active[data-type="stellplatz"] { background: #546e7a; border-color: #546e7a; color: #fff; }
     .type-btn.active[data-type="bivouac"]    { background: #e64a19; border-color: #e64a19; color: #fff; }
+
+    /* ── Tooltip ── */
+    [data-tooltip] { position: relative; }
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute; bottom: calc(100% + 5px); left: 50%;
+      transform: translateX(-50%);
+      background: #333; color: #fff; font-size: 11px; padding: 3px 8px;
+      border-radius: 4px; white-space: nowrap; pointer-events: none;
+      opacity: 0; transition: opacity .15s; z-index: 9999;
+    }
+    [data-tooltip]:hover::after { opacity: 1; }
 
     /* ── Canton + Rating row ── */
     #location-row { display: flex; gap: 8px; }
@@ -459,7 +468,7 @@ const AMENITY_CHIPS = [
 ];
 
 const WATER_CHIPS = [
-  { key: 'lake',        label: '🏞️ Lake nearby',   filterFn: c => c.near_water === 'lake' },
+  { key: 'lake',        label: '🏞️ Lake / swim',   filterFn: c => c.near_water === 'lake' || c.amenities.includes('swimming') },
   { key: 'river',       label: '🌊 River nearby',  filterFn: c => c.near_water === 'river' },
   { key: 'swimming_any',label: '🏊 Can swim',       filterFn: c => c.amenities.includes('swimming') || c.amenities.includes('pool') },
   { key: 'town_3km',    label: '🏘️ Town < 3 km',   filterFn: c => c.distance_town_m !== null && c.distance_town_m <= 3000 },
@@ -784,7 +793,7 @@ function buildChips() {
     chip.className = 'chip canton';
     chip.dataset.canton = code;
     chip.textContent = code;
-    chip.title = name;
+    chip.dataset.tooltip = name;
     chip.addEventListener('click', () => {
       activeCantons.has(code) ? activeCantons.delete(code) : activeCantons.add(code);
       chip.classList.toggle('active');
@@ -847,9 +856,14 @@ document.getElementById('btn-clear').addEventListener('click', () => {
 });
 
 // ── Collapsible sections ──────────────────────────────────────────────────────
+document.querySelectorAll('.filter-section.collapsed .section-body').forEach(b => b.classList.add('hidden'));
+
 document.querySelectorAll('.section-header').forEach(header => {
   header.addEventListener('click', () => {
-    header.closest('.filter-section').classList.toggle('collapsed');
+    const section = header.closest('.filter-section');
+    const body = section.querySelector('.section-body');
+    const isCollapsed = section.classList.toggle('collapsed');
+    body.classList.toggle('hidden', isCollapsed);
   });
 });
 
