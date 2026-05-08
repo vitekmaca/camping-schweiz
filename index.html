@@ -513,6 +513,18 @@ cantonLabel.style.cssText = `
 document.getElementById('map').appendChild(cantonLabel);
 
 let cantonLayer = null;
+const cantonLayers = {};  // code → Leaflet layer
+
+function highlightCanton(code, on) {
+  const l = cantonLayers[code];
+  if (!l) return;
+  if (on) {
+    l.setStyle({ fillColor: '#2d6a4f', fillOpacity: 0.18, color: '#2d6a4f', weight: 2, opacity: 0.9 });
+    l.bringToFront();
+  } else {
+    cantonLayer.resetStyle(l);
+  }
+}
 
 fetch(CANTON_GEOJSON_URL)
   .then(r => r.json())
@@ -525,6 +537,7 @@ fetch(CANTON_GEOJSON_URL)
       onEachFeature(feature, layer) {
         const name = feature.properties.name;
         const code = feature.properties.id;
+        cantonLayers[code] = layer;
         layer.on('mouseover', function(e) {
           this.setStyle({ fillColor: '#2d6a4f', fillOpacity: 0.12, color: '#2d6a4f', weight: 2, opacity: 0.8 });
           cantonLabel.textContent = `${name} (${code})`;
@@ -778,6 +791,8 @@ function buildChips() {
       updateCantonCount();
       applyFilters();
     });
+    chip.addEventListener('mouseenter', () => highlightCanton(code, true));
+    chip.addEventListener('mouseleave', () => highlightCanton(code, false));
     cc.appendChild(chip);
   });
 }
