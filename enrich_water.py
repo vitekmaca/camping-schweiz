@@ -27,6 +27,7 @@ OVERPASS_QUERY = """
 area["ISO3166-1"="CH"][admin_level=2]->.ch;
 (
   way["natural"="water"](area.ch);
+  relation["natural"="water"](area.ch);
   way["waterway"~"^(river|stream|canal)$"](area.ch);
 );
 out geom;
@@ -67,12 +68,31 @@ def fetch_water():
 
     lakes, rivers = [], []
     for el in elements:
+        tags = el.get("tags", {})
+        is_waterway = "waterway" in tags
+
+        # ── Relations (multipolygon lakes like Vierwaldstättersee, Lake Zurich…)
+        if el["type"] == "relation":
+            for member in el.get("members", []):
+                if member.get("role") != "outer":
+                    continue
+                raw = member.get("geometry", [])
+                if len(raw) < 4:
+                    continue
+                coords = [(g["lon"], g["lat"]) for g in raw]
+                try:
+                    poly = make_valid(Polygon(coords))
+                    if poly.is_valid and not poly.is_empty and poly.area > 0:
+                        lakes.append((poly, poly.bounds))
+                except Exception:
+                    pass
+            continue
+
+        # ── Ways
         raw = el.get("geometry", [])
         if len(raw) < 2:
             continue
         coords = [(g["lon"], g["lat"]) for g in raw]
-        tags   = el.get("tags", {})
-        is_waterway = "waterway" in tags
 
         if not is_waterway and len(coords) >= 4:
             try:
