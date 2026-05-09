@@ -548,6 +548,7 @@ let activeTypes = new Set(Object.keys(TYPES));
 let activeAmenities = new Set();
 let activeWater = new Set();
 let activeCantons = new Set();
+const DEFAULT_ORIGIN = { lat: 47.3736, lng: 8.4867, label: 'In der Wässeri 25, Zürich' };
 let travelOrigin = null, travelMaxMin = 0, travelSpeed = 90;
 let travelOriginMarker = null, travelCircles = [], pickingOrigin = false;
 let mapBoundsSnapshot = null;
@@ -950,16 +951,16 @@ document.getElementById('btn-clear').addEventListener('click', () => {
     map.addLayer(clusterGroups[b.dataset.type]);
   });
   userLat = null; userLng = null;
-  travelOrigin = null; travelMaxMin = 0; travelSpeed = 90;
+  travelMaxMin = 0; travelSpeed = 90;
   document.getElementById('travel-slider').value = 0;
   document.getElementById('travel-time-label').textContent = 'Off';
   document.getElementById('travel-speed-input').value = 90;
-  document.getElementById('origin-label').style.display = 'none';
   document.getElementById('btn-set-origin').textContent = '📍 Set start';
   document.getElementById('btn-set-origin').classList.remove('picking');
   if (travelOriginMarker) { map.removeLayer(travelOriginMarker); travelOriginMarker = null; }
   travelCircles.forEach(c => map.removeLayer(c)); travelCircles = [];
   updateSliderTrack();
+  setTravelOrigin(DEFAULT_ORIGIN.lat, DEFAULT_ORIGIN.lng, DEFAULT_ORIGIN.label);
   mapBoundsSnapshot = null;
   document.getElementById('btn-refresh-list').textContent = '↺ Map view';
   document.getElementById('btn-refresh-list').classList.remove('active');
@@ -1011,15 +1012,15 @@ function updateTravelCircles() {
   travelCircles.push(maxC);
 }
 
-function setTravelOrigin(lat, lng) {
+function setTravelOrigin(lat, lng, label) {
   travelOrigin = { lat, lng };
   if (travelOriginMarker) map.removeLayer(travelOriginMarker);
   travelOriginMarker = L.circleMarker([lat, lng], {
     radius: 9, color: '#e65100', fillColor: '#e65100', fillOpacity: 0.9, weight: 2,
-  }).addTo(map).bindPopup('Travel start point');
+  }).addTo(map).bindPopup(label || 'Travel start point');
   const lbl = document.getElementById('origin-label');
   lbl.style.display = 'block';
-  lbl.textContent = `Start: ${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`;
+  lbl.textContent = label || `${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`;
   updateTravelCircles();
   updateSectionDots();
   applyFilters();
@@ -1090,6 +1091,7 @@ async function loadData() {
     buildChips();
     updateCantonChipCounts();
     applyFilters();
+    setTravelOrigin(DEFAULT_ORIGIN.lat, DEFAULT_ORIGIN.lng, DEFAULT_ORIGIN.label);
     document.getElementById('loading').style.display = 'none';
   } catch (err) {
     document.getElementById('loading').innerHTML =
