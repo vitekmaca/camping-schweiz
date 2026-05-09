@@ -14,12 +14,13 @@ import json, math, sys
 import requests
 from shapely.geometry import Polygon, LineString, MultiPolygon, Point
 from shapely.validation import make_valid
-from shapely.ops import nearest_points
+from shapely.ops import nearest_points, linemerge, polygonize
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 DATA_FILE    = "data.json"
-LAKE_MAX_M   = 500   # within 500 m → near lake
-RIVER_MAX_M  = 300   # within 300 m → near river
+LAKE_MAX_M    = 300   # within 300 m → near lake
+RIVER_MAX_M   = 100   # within 100 m → near river
+MIN_LAKE_AREA = 1e-5  # ~0.12 km² (12 ha) — keeps named lakes, excludes pools/ponds
 HEADERS      = {"User-Agent": "camping-schweiz-enrich/1.0 (personal)"}
 
 OVERPASS_QUERY = """
@@ -73,19 +74,34 @@ def fetch_water():
 
         # ── Relations (multipolygon lakes like Vierwaldstättersee, Lake Zurich…)
         if el["type"] == "relation":
+            # Skip river/stream polygons mislabelled as natural=water
+            water_type = tags.get("water", "")
+            if water_type in ("river", "stream", "canal", "fairway"):
+                continue
+            # Stitch all outer member ways into complete polygon(s)
+            outer_lines = []
             for member in el.get("members", []):
                 if member.get("role") != "outer":
                     continue
                 raw = member.get("geometry", [])
-                if len(raw) < 4:
+                if len(raw) < 2:
                     continue
                 coords = [(g["lon"], g["lat"]) for g in raw]
                 try:
-                    poly = make_valid(Polygon(coords))
-                    if poly.is_valid and not poly.is_empty and poly.area > 0:
-                        lakes.append((poly, poly.bounds))
+                    outer_lines.append(LineString(coords))
                 except Exception:
                     pass
+            if not outer_lines:
+                continue
+            try:
+                merged = linemerge(outer_lines)
+                polys = list(polygonize(merged))
+                for poly in polys:
+                    poly = make_valid(poly)
+                    if poly.is_valid and not poly.is_empty and poly.area >= MIN_LAKE_AREA:
+                        lakes.append((poly, poly.bounds))
+            except Exception:
+                pass
             continue
 
         # ── Ways
@@ -94,10 +110,12 @@ def fetch_water():
             continue
         coords = [(g["lon"], g["lat"]) for g in raw]
 
-        if not is_waterway and len(coords) >= 4:
+        water_type = tags.get("water", "")
+        is_river_polygon = water_type in ("river", "stream", "canal", "fairway")
+        if not is_waterway and not is_river_polygon and len(coords) >= 4:
             try:
                 poly = make_valid(Polygon(coords))
-                if poly.is_valid and not poly.is_empty and poly.area > 0:
+                if poly.is_valid and not poly.is_empty and poly.area >= MIN_LAKE_AREA:
                     lakes.append((poly, poly.bounds))
                     continue
             except Exception:
