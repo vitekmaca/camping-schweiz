@@ -10162,28 +10162,6 @@
     "website": "http://camping-surcuolm.ch/"
   },
   {
-    "id": "osm-269108397",
-    "name": "TCS Camping St. Moritz",
-    "lat": 46.4777371,
-    "lng": 9.8265834,
-    "canton": "GR",
-    "type": "campsite",
-    "amenities": [
-      "toilets",
-      "showers",
-      "electricity"
-    ],
-    "near_water": "lake",
-    "distance_water_m": 156,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=TCS%20Camping%20St.%20Moritz%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/269108397",
-    "website": "https://www.tcs.ch/de/reisen-camping/camping/angebote/st-moritz.php"
-  },
-  {
     "id": "osm-270760359",
     "name": "Camping Cavresc",
     "lat": 46.2943898,
