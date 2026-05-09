@@ -19,7 +19,8 @@
       box-shadow: 2px 0 8px rgba(0,0,0,.12);
       z-index: 1000; overflow: hidden;
     }
-    #sidebar-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    #sidebar-body { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    #sidebar-filters { flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }
     #sidebar-header {
       padding: 12px 16px;
       background: #2d6a4f; color: #fff; flex-shrink: 0;
@@ -115,7 +116,14 @@
     #btn-locate:hover { background: #1b4332; }
     #btn-clear { font-size: 11px; color: #2d6a4f; background: none; border: none; cursor: pointer; text-decoration: underline; }
 
-    /* ── List ── */
+    /* ── List panel ── */
+    #list-panel { flex-shrink: 0; height: 260px; display: flex; flex-direction: column; border-top: 2px solid #e0e0e0; }
+    #list-panel-header { display: flex; align-items: center; gap: 6px; padding: 7px 12px; flex-shrink: 0; border-bottom: 1px solid #eee; }
+    #list-count-badge { color: #999; font-weight: 400; text-transform: none; font-size: 10px; }
+    #btn-refresh-list { margin-left: auto; padding: 3px 9px; border-radius: 4px; border: 1px solid #ddd; background: #f9f9f9; font-size: 10px; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    #btn-refresh-list:hover { border-color: #2d6a4f; }
+    #btn-refresh-list.active { background: #e8f5ee; border-color: #2d6a4f; color: #2d6a4f; }
+    #list-scroll { flex: 1; overflow-y: auto; min-height: 0; }
     #list { padding: 4px 0; }
     .item {
       padding: 9px 14px; border-bottom: 1px solid #f0f0f0;
@@ -138,6 +146,23 @@
     .itag.type  { background: #f3f4f6; color: #555; }
     .item-dist { font-size: 10px; color: #bbb; margin-top: 2px; }
     #no-results { text-align: center; padding: 32px 16px; color: #aaa; font-size: 13px; display: none; }
+
+    /* ── Travel time ── */
+    .origin-btn { flex: 1; padding: 5px 8px; border-radius: 6px; border: 1px solid #ddd; background: #f9f9f9; font-size: 11px; cursor: pointer; transition: all .15s; }
+    .origin-btn:hover { border-color: #e65100; }
+    .origin-btn.picking { background: #e65100; color: #fff; border-color: #e65100; }
+    #origin-label { font-size: 11px; color: #888; margin-bottom: 6px; display: none; }
+    #travel-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 5px; border-radius: 3px; outline: none; cursor: pointer;
+      background: linear-gradient(to right, #e65100 0%, #e65100 var(--pct,0%), #e0e0e0 var(--pct,0%), #e0e0e0 100%);
+    }
+    #travel-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #e65100; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer; }
+    #travel-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #e65100; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.3); cursor: pointer; border: none; }
+    #travel-speed-input { width: 55px; padding: 4px 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; }
+    .travel-ring-label.leaflet-tooltip { background: rgba(230,81,0,.85); color: #fff; border: none; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .travel-ring-label.leaflet-tooltip::before { display: none; }
+    .itag.travel { background: #fff3e0; color: #e65100; }
 
     /* ── Map ── */
     #map { flex: 1; }
@@ -222,6 +247,7 @@
   </div>
 
   <div id="sidebar-body">
+  <div id="sidebar-filters">
   <!-- Type toggles -->
   <div class="filter-section" id="section-type">
     <div class="section-header">
@@ -329,6 +355,37 @@
     </div>
   </div>
 
+  <!-- Travel time -->
+  <div class="filter-section collapsed" id="section-travel">
+    <div class="section-header">
+      <span class="section-label">Travel Time</span>
+      <span class="section-dot" id="dot-travel"></span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body hidden">
+      <div class="section-body-inner">
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <button class="origin-btn" id="btn-set-origin">📍 Set start</button>
+          <button class="origin-btn" id="btn-use-location">🔵 My location</button>
+        </div>
+        <div id="origin-label"></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span class="section-label" style="flex-shrink:0;">Speed</span>
+          <input type="number" id="travel-speed-input" value="90" min="30" max="200" />
+          <span style="font-size:11px;color:#888;">km/h · ×1.4 terrain</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+          <span class="section-label">Max travel time</span>
+          <span id="travel-time-label" style="font-size:12px;font-weight:700;color:#e65100;">Off</span>
+        </div>
+        <input type="range" id="travel-slider" min="0" max="240" step="15" value="0" />
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:#bbb;margin-top:3px;">
+          <span>Off</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Search + actions -->
   <div class="filter-section">
     <input type="text" id="search" placeholder="Search by name…" style="margin-bottom:8px;" />
@@ -342,9 +399,18 @@
       <button id="btn-clear">Reset all</button>
     </div>
   </div>
+  </div><!-- /sidebar-filters -->
 
-  <div id="list">
-    <div id="no-results">No results found.</div>
+  <div id="list-panel">
+    <div id="list-panel-header">
+      <span class="section-label">Places <span id="list-count-badge"></span></span>
+      <button id="btn-refresh-list">↺ Map view</button>
+    </div>
+    <div id="list-scroll">
+      <div id="list">
+        <div id="no-results">No results found.</div>
+      </div>
+    </div>
   </div>
   </div><!-- /sidebar-body -->
 </div>
@@ -482,6 +548,9 @@ let activeTypes = new Set(Object.keys(TYPES));
 let activeAmenities = new Set();
 let activeWater = new Set();
 let activeCantons = new Set();
+let travelOrigin = null, travelMaxMin = 0, travelSpeed = 90;
+let travelOriginMarker = null, travelCircles = [], pickingOrigin = false;
+let mapBoundsSnapshot = null;
 
 const CANTONS = [
   ['AG','Aargau'],['AI','App. I.Rh.'],['AR','App. A.Rh.'],['BE','Bern'],
@@ -557,6 +626,7 @@ fetch(CANTON_GEOJSON_URL)
           cantonLabel.style.opacity = '0';
         });
         layer.on('click', function() {
+          if (pickingOrigin) return;
           activeCantons.has(code) ? activeCantons.delete(code) : activeCantons.add(code);
           const chip = document.querySelector(`#canton-chips [data-canton="${code}"]`);
           if (chip) chip.classList.toggle('active', activeCantons.has(code));
@@ -622,6 +692,24 @@ function haversine(lat1, lng1, lat2, lng2) {
 }
 const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} km`;
 
+// ── Travel time helpers ───────────────────────────────────────────────────────
+const TERRAIN_FACTOR = 1.4;
+function travelTimeMin(lat, lng) {
+  if (!travelOrigin) return null;
+  const distM = haversine(travelOrigin.lat, travelOrigin.lng, lat, lng);
+  return (distM * TERRAIN_FACTOR / 1000) / travelSpeed * 60;
+}
+function fmtMinutes(m) {
+  if (m === 0) return 'Off';
+  const h = Math.floor(m / 60), mn = m % 60;
+  if (h === 0) return `${mn} min`;
+  if (mn === 0) return `${h}h`;
+  return `${h}h ${mn}min`;
+}
+function radiusForMinutes(min) {
+  return (min / 60) * travelSpeed * 1000 / TERRAIN_FACTOR;
+}
+
 // ── Filter ────────────────────────────────────────────────────────────────────
 function getFiltered() {
   const q = document.getElementById('search').value.toLowerCase();
@@ -639,6 +727,11 @@ function getFiltered() {
       const wc = WATER_CHIPS.find(x => x.key === w);
       if (wc && !wc.filterFn(c)) return false;
     }
+    if (travelOrigin && travelMaxMin > 0) {
+      const t = travelTimeMin(c.lat, c.lng);
+      if (t === null || t > travelMaxMin) return false;
+    }
+    if (mapBoundsSnapshot && !mapBoundsSnapshot.contains(L.latLng(c.lat, c.lng))) return false;
     return true;
   });
 }
@@ -665,6 +758,10 @@ function renderList(filtered) {
     chips.push(`<span class="itag type">${c.canton}</span>`);
     if (c.near_water) chips.push(`<span class="itag water">${c.near_water === 'lake' ? '🏞️' : '🌊'} ${c.near_water}</span>`);
     if (c.rating_google) chips.push(`<span class="itag rating">⭐ ${c.rating_google.toFixed(1)}</span>`);
+    if (travelOrigin) {
+      const tm = travelTimeMin(c.lat, c.lng);
+      if (tm !== null) chips.push(`<span class="itag travel">🕐 ${fmtMinutes(Math.round(tm / 15) * 15)}</span>`);
+    }
     c.amenities.slice(0, 3).forEach(a => {
       const chip = AMENITY_CHIPS.find(x => x.key === a);
       if (chip) chips.push(`<span class="itag">${chip.label}</span>`);
@@ -732,6 +829,7 @@ function applyFilters() {
     document.getElementById(`cnt-${t}`).textContent = `${show[t]} / ${total[t]}`;
   });
   document.getElementById('count-badge').textContent = `${filtered.length} of ${allCamps.length}`;
+  document.getElementById('list-count-badge').textContent = `(${filtered.length})`;
   updateSectionDots();
   renderList(filtered);
   updateMap(filtered);
@@ -743,6 +841,7 @@ function updateSectionDots() {
   document.getElementById('dot-rating').classList.toggle('visible', !!ratingActive);
   document.getElementById('dot-amenities').classList.toggle('visible', activeAmenities.size > 0);
   document.getElementById('dot-water').classList.toggle('visible', activeWater.size > 0);
+  document.getElementById('dot-travel').classList.toggle('visible', travelOrigin !== null && travelMaxMin > 0);
 }
 
 function updateCantonChipCounts() {
@@ -851,6 +950,19 @@ document.getElementById('btn-clear').addEventListener('click', () => {
     map.addLayer(clusterGroups[b.dataset.type]);
   });
   userLat = null; userLng = null;
+  travelOrigin = null; travelMaxMin = 0; travelSpeed = 90;
+  document.getElementById('travel-slider').value = 0;
+  document.getElementById('travel-time-label').textContent = 'Off';
+  document.getElementById('travel-speed-input').value = 90;
+  document.getElementById('origin-label').style.display = 'none';
+  document.getElementById('btn-set-origin').textContent = '📍 Set start';
+  document.getElementById('btn-set-origin').classList.remove('picking');
+  if (travelOriginMarker) { map.removeLayer(travelOriginMarker); travelOriginMarker = null; }
+  travelCircles.forEach(c => map.removeLayer(c)); travelCircles = [];
+  updateSliderTrack();
+  mapBoundsSnapshot = null;
+  document.getElementById('btn-refresh-list').textContent = '↺ Map view';
+  document.getElementById('btn-refresh-list').classList.remove('active');
   applyFilters();
   map.setView([46.8182, 8.2275], 8);
 });
@@ -870,6 +982,100 @@ document.querySelectorAll('.section-header').forEach(header => {
 document.getElementById('search').addEventListener('input', applyFilters);
 document.getElementById('rating-filter').addEventListener('change', applyFilters);
 document.getElementById('p4n-rating-filter').addEventListener('change', applyFilters);
+
+// ── Travel time ───────────────────────────────────────────────────────────────
+function updateSliderTrack() {
+  const sl = document.getElementById('travel-slider');
+  const pct = (sl.value / sl.max) * 100;
+  sl.style.setProperty('--pct', pct + '%');
+}
+
+function updateTravelCircles() {
+  travelCircles.forEach(c => map.removeLayer(c));
+  travelCircles = [];
+  if (!travelOrigin || travelMaxMin === 0) return;
+  const refTimes = [60, 120, 180].filter(t => t <= travelMaxMin + 45);
+  refTimes.forEach(t => {
+    const c = L.circle([travelOrigin.lat, travelOrigin.lng], {
+      radius: radiusForMinutes(t),
+      color: '#e65100', weight: 1, opacity: 0.5,
+      fillColor: '#e65100', fillOpacity: 0.03, dashArray: '5 7',
+    }).bindTooltip(fmtMinutes(t), { permanent: true, direction: 'right', className: 'travel-ring-label' }).addTo(map);
+    travelCircles.push(c);
+  });
+  const maxC = L.circle([travelOrigin.lat, travelOrigin.lng], {
+    radius: radiusForMinutes(travelMaxMin),
+    color: '#e65100', weight: 2, opacity: 0.8,
+    fillColor: '#e65100', fillOpacity: 0.06,
+  }).addTo(map);
+  travelCircles.push(maxC);
+}
+
+function setTravelOrigin(lat, lng) {
+  travelOrigin = { lat, lng };
+  if (travelOriginMarker) map.removeLayer(travelOriginMarker);
+  travelOriginMarker = L.circleMarker([lat, lng], {
+    radius: 9, color: '#e65100', fillColor: '#e65100', fillOpacity: 0.9, weight: 2,
+  }).addTo(map).bindPopup('Travel start point');
+  const lbl = document.getElementById('origin-label');
+  lbl.style.display = 'block';
+  lbl.textContent = `Start: ${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`;
+  updateTravelCircles();
+  updateSectionDots();
+  applyFilters();
+}
+
+document.getElementById('btn-set-origin').addEventListener('click', () => {
+  pickingOrigin = !pickingOrigin;
+  const btn = document.getElementById('btn-set-origin');
+  btn.classList.toggle('picking', pickingOrigin);
+  btn.textContent = pickingOrigin ? '✕ Cancel' : '📍 Set start';
+  map.getContainer().style.cursor = pickingOrigin ? 'crosshair' : '';
+});
+
+document.getElementById('btn-use-location').addEventListener('click', () => {
+  if (!navigator.geolocation) return alert('Geolocation not available.');
+  navigator.geolocation.getCurrentPosition(pos => {
+    setTravelOrigin(pos.coords.latitude, pos.coords.longitude);
+  }, () => alert('Could not get your location.'));
+});
+
+map.on('click', e => {
+  if (!pickingOrigin) return;
+  setTravelOrigin(e.latlng.lat, e.latlng.lng);
+  pickingOrigin = false;
+  document.getElementById('btn-set-origin').textContent = '📍 Set start';
+  document.getElementById('btn-set-origin').classList.remove('picking');
+  map.getContainer().style.cursor = '';
+});
+
+document.getElementById('travel-slider').addEventListener('input', function() {
+  travelMaxMin = parseInt(this.value);
+  document.getElementById('travel-time-label').textContent = fmtMinutes(travelMaxMin);
+  updateSliderTrack();
+  updateTravelCircles();
+  updateSectionDots();
+  applyFilters();
+});
+
+document.getElementById('travel-speed-input').addEventListener('input', function() {
+  travelSpeed = parseInt(this.value) || 90;
+  if (travelOrigin && travelMaxMin > 0) { updateTravelCircles(); applyFilters(); }
+});
+
+// ── Map view filter ───────────────────────────────────────────────────────────
+document.getElementById('btn-refresh-list').addEventListener('click', function() {
+  if (mapBoundsSnapshot) {
+    mapBoundsSnapshot = null;
+    this.textContent = '↺ Map view';
+    this.classList.remove('active');
+  } else {
+    mapBoundsSnapshot = map.getBounds();
+    this.textContent = '✕ Clear';
+    this.classList.add('active');
+  }
+  applyFilters();
+});
 
 // ── Load data ─────────────────────────────────────────────────────────────────
 async function loadData() {
