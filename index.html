@@ -301,28 +301,15 @@
     </div>
     <div class="section-body">
       <div class="section-body-inner">
-        <div id="location-row">
-          <div>
-            <span class="section-label" style="margin-bottom:4px;">🌐 Min. Google rating</span>
-            <select id="rating-filter">
-              <option value="">Any</option>
-              <option value="3">3.0+</option>
-              <option value="3.5">3.5+</option>
-              <option value="4">4.0+</option>
-              <option value="4.5">4.5+</option>
-            </select>
-          </div>
-          <div>
-            <span class="section-label" style="margin-bottom:4px;">🅿️ Min. P4N rating</span>
-            <select id="p4n-rating-filter">
-              <option value="">Any</option>
-              <option value="6">6.0+</option>
-              <option value="7">7.0+</option>
-              <option value="8">8.0+</option>
-              <option value="9">9.0+</option>
-            </select>
-          </div>
-        </div>
+        <span class="section-label" style="margin-bottom:4px;">🅿️ Park4Night</span>
+        <select id="p4n-rating-filter">
+          <option value="">Any</option>
+          <option value="p4n_only">P4N places only</option>
+          <option value="6">Rating 6.0+</option>
+          <option value="7">Rating 7.0+</option>
+          <option value="8">Rating 8.0+</option>
+          <option value="9">Rating 9.0+</option>
+        </select>
       </div>
     </div>
   </div>
@@ -538,7 +525,7 @@ const WATER_CHIPS = [
   { key: 'river',       label: '🌊 River nearby',  filterFn: c => c.near_water === 'river' },
   { key: 'swimming_any',label: '🏊 Can swim',       filterFn: c => c.amenities.includes('swimming') || c.amenities.includes('pool') },
   { key: 'town_3km',    label: '🏘️ Town < 3 km',   filterFn: c => c.distance_town_m !== null && c.distance_town_m <= 3000 },
-  { key: 'has_reviews', label: '⭐ Has reviews',    filterFn: c => c.rating_google !== null || c.rating_p4n !== null },
+  { key: 'has_reviews', label: '⭐ Has P4N rating', filterFn: c => c.rating_p4n !== null },
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -714,15 +701,16 @@ function radiusForMinutes(min) {
 // ── Filter ────────────────────────────────────────────────────────────────────
 function getFiltered() {
   const q = document.getElementById('search').value.toLowerCase();
-  const minRating    = parseFloat(document.getElementById('rating-filter').value) || 0;
-  const minP4nRating = parseFloat(document.getElementById('p4n-rating-filter').value) || 0;
+  const p4nVal = document.getElementById('p4n-rating-filter').value;
+  const minP4nRating = p4nVal && p4nVal !== 'p4n_only' ? parseFloat(p4nVal) : 0;
+  const p4nOnly = p4nVal === 'p4n_only';
 
   return allCamps.filter(c => {
     if (!activeTypes.has(c.type)) return false;
     if (q && !c.name.toLowerCase().includes(q)) return false;
     if (activeCantons.size > 0 && !activeCantons.has(c.canton)) return false;
-    if (minRating    > 0 && (c.rating_google === null || c.rating_google < minRating))    return false;
-    if (minP4nRating > 0 && (c.rating_p4n   === null || c.rating_p4n   < minP4nRating)) return false;
+    if (p4nOnly && !c.url_p4n) return false;
+    if (minP4nRating > 0 && (c.rating_p4n === null || c.rating_p4n < minP4nRating)) return false;
     for (const a of activeAmenities) if (!c.amenities.includes(a)) return false;
     for (const w of activeWater) {
       const wc = WATER_CHIPS.find(x => x.key === w);
@@ -837,9 +825,8 @@ function applyFilters() {
 }
 
 function updateSectionDots() {
-  const ratingActive = document.getElementById('rating-filter').value || document.getElementById('p4n-rating-filter').value;
   document.getElementById('dot-canton').classList.toggle('visible', activeCantons.size > 0);
-  document.getElementById('dot-rating').classList.toggle('visible', !!ratingActive);
+  document.getElementById('dot-rating').classList.toggle('visible', !!document.getElementById('p4n-rating-filter').value);
   document.getElementById('dot-amenities').classList.toggle('visible', activeAmenities.size > 0);
   document.getElementById('dot-water').classList.toggle('visible', activeWater.size > 0);
   document.getElementById('dot-travel').classList.toggle('visible', travelOrigin !== null && travelMaxMin > 0);
@@ -938,7 +925,6 @@ document.getElementById('btn-locate').addEventListener('click', () => {
 // ── Reset ─────────────────────────────────────────────────────────────────────
 document.getElementById('btn-clear').addEventListener('click', () => {
   document.getElementById('search').value = '';
-  document.getElementById('rating-filter').value = '';
   document.getElementById('p4n-rating-filter').value = '';
   activeAmenities.clear();
   activeWater.clear();
@@ -981,7 +967,6 @@ document.querySelectorAll('.section-header').forEach(header => {
 });
 
 document.getElementById('search').addEventListener('input', applyFilters);
-document.getElementById('rating-filter').addEventListener('change', applyFilters);
 document.getElementById('p4n-rating-filter').addEventListener('change', applyFilters);
 
 // ── Travel time ───────────────────────────────────────────────────────────────
