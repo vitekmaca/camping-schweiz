@@ -163,7 +163,15 @@
     .travel-ring-label.leaflet-tooltip { background: rgba(230,81,0,.85); color: #fff; border: none; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
     .travel-ring-label.leaflet-tooltip::before { display: none; }
     .itag.travel { background: #fff3e0; color: #e65100; }
+    .itag.weather { background: #e8f4fd; color: #1565c0; }
     .spinner-small { display: inline-block; width: 10px; height: 10px; border: 2px solid #f0a070; border-top-color: #e65100; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 3px; }
+    /* ── Weekend weather ── */
+    .temp-btn { flex: 1; padding: 4px 0; border-radius: 6px; border: 2px solid #e0e0e0; background: #f9f9f9; font-size: 11px; font-weight: 500; color: #666; cursor: pointer; transition: all .15s; }
+    .temp-btn.active { background: #1565c0; border-color: #1565c0; color: #fff; }
+    #weather-canton-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; margin-top: 8px; }
+    .wcanton { font-size: 9px; text-align: center; padding: 3px 2px; border-radius: 5px; background: #f0f4ff; color: #333; line-height: 1.3; }
+    .wcanton .wcode { font-weight: 700; }
+    .wcanton .wtemp { color: #1565c0; font-weight: 600; }
 
     /* ── Map ── */
     #map { flex: 1; }
@@ -383,6 +391,30 @@
     </div>
   </div>
 
+  <!-- Weekend weather -->
+  <div class="filter-section collapsed" id="section-weather">
+    <div class="section-header">
+      <span class="section-label">🌤 Weekend weather <span id="weather-dates" style="font-weight:400;text-transform:none;font-size:10px;color:#1565c0;"></span></span>
+      <span class="section-dot" id="dot-weather"></span>
+      <span class="section-arrow">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="section-body-inner">
+        <div style="font-size:10px;color:#aaa;margin-bottom:6px;">Avg daytime high Fri + 2×Sat + Sun · MeteoSwiss model</div>
+        <div style="font-size:11px;color:#555;margin-bottom:5px;">Min. weekend temperature</div>
+        <div style="display:flex;gap:4px;" id="temp-btns">
+          <button class="temp-btn active" data-temp="0">Any</button>
+          <button class="temp-btn" data-temp="12">≥12°</button>
+          <button class="temp-btn" data-temp="16">≥16°</button>
+          <button class="temp-btn" data-temp="20">≥20°</button>
+          <button class="temp-btn" data-temp="24">≥24°</button>
+        </div>
+        <div id="weather-canton-grid"></div>
+        <div id="weather-loading" style="font-size:10px;color:#aaa;margin-top:6px;">⏳ Fetching forecasts…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Search + actions -->
   <div class="filter-section">
     <input type="text" id="search" placeholder="Search by name…" style="margin-bottom:8px;" />
@@ -545,6 +577,8 @@ let activeTypes = new Set(['campsite', 'farm']);
 let activeAmenities = new Set();
 let activeWater = new Set();
 let activeCantons = new Set();
+let cantonWeekendTemp = {};   // { ZH: 22.4, BE: 18.1, … }
+let weekendTempMin = 0;       // 0 = off
 const DEFAULT_ORIGIN = { lat: 47.3736, lng: 8.4867, label: 'In der Wässeri 25, Zürich' };
 let travelOrigin = null, travelMaxMin = 0;
 let travelOriginMarker = null, pickingOrigin = false;
@@ -802,6 +836,106 @@ function scheduleIsochroneUpdate() {
   isochroneDebounce = setTimeout(updateIsochrone, 600);
 }
 
+// ── Weekend weather ───────────────────────────────────────────────────────────
+const CANTON_CAPITALS = {
+  ZH: { lat: 47.3769, lng: 8.5417 },  BE: { lat: 46.9480, lng: 7.4474 },
+  LU: { lat: 47.0502, lng: 8.3093 },  UR: { lat: 46.8800, lng: 8.6440 },
+  SZ: { lat: 47.0207, lng: 8.6530 },  OW: { lat: 46.8970, lng: 8.2440 },
+  NW: { lat: 46.9570, lng: 8.3660 },  GL: { lat: 47.0400, lng: 9.0680 },
+  ZG: { lat: 47.1660, lng: 8.5160 },  FR: { lat: 46.8065, lng: 7.1620 },
+  SO: { lat: 47.2088, lng: 7.5360 },  BS: { lat: 47.5596, lng: 7.5886 },
+  BL: { lat: 47.4840, lng: 7.7340 },  SH: { lat: 47.6960, lng: 8.6340 },
+  AR: { lat: 47.3870, lng: 9.2770 },  AI: { lat: 47.3320, lng: 9.4080 },
+  SG: { lat: 47.4230, lng: 9.3770 },  GR: { lat: 46.8500, lng: 9.5330 },
+  AG: { lat: 47.3910, lng: 8.0440 },  TG: { lat: 47.5570, lng: 8.8990 },
+  TI: { lat: 46.1950, lng: 9.0230 },  VD: { lat: 46.5197, lng: 6.6323 },
+  VS: { lat: 46.2330, lng: 7.3600 },  NE: { lat: 46.9900, lng: 6.9310 },
+  GE: { lat: 46.2044, lng: 6.1432 },  JU: { lat: 47.3650, lng: 7.3440 },
+};
+
+function getNextWeekendDates() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const day = today.getDay(); // 0=Sun … 6=Sat
+  // Days to next Friday (0 if today is Friday, wraps for Sat/Sun)
+  const daysToFri = (5 - day + 7) % 7;
+  const fri = new Date(today); fri.setDate(today.getDate() + daysToFri);
+  const sat = new Date(fri);   sat.setDate(fri.getDate() + 1);
+  const sun = new Date(sat);   sun.setDate(sat.getDate() + 1);
+  return [fri, sat, sun];
+}
+
+function tempColor(t) {
+  if (t === null) return '#ccc';
+  if (t >= 24) return '#e53935';
+  if (t >= 20) return '#fb8c00';
+  if (t >= 16) return '#43a047';
+  if (t >= 12) return '#1e88e5';
+  return '#757575';
+}
+
+async function fetchWeekendWeather() {
+  const [fri, sat, sun] = getNextWeekendDates();
+  const fmt = d => d.toISOString().slice(0, 10);
+  const startDate = fmt(fri);
+  const endDate   = fmt(sun);
+
+  // Label e.g. "16–18 May"
+  const dayFmt = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short' });
+  document.getElementById('weather-dates').textContent =
+    `${dayFmt.format(fri)}–${dayFmt.format(sun)}`;
+
+  const codes = Object.keys(CANTON_CAPITALS);
+  const lats  = codes.map(c => CANTON_CAPITALS[c].lat).join(',');
+  const lngs  = codes.map(c => CANTON_CAPITALS[c].lng).join(',');
+
+  try {
+    // Use Open-Meteo with MeteoSwiss ICON-CH2 regional model
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lngs}` +
+      `&daily=temperature_2m_max&models=icon_ch2&timezone=Europe%2FZurich` +
+      `&start_date=${startDate}&end_date=${endDate}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const results = await res.json();
+
+    // API returns array when multiple locations given
+    const arr = Array.isArray(results) ? results : [results];
+    const friStr = fmt(fri), satStr = fmt(sat), sunStr = fmt(sun);
+
+    arr.forEach((r, i) => {
+      const code = codes[i];
+      const times = r.daily?.time || [];
+      const maxes = r.daily?.temperature_2m_max || [];
+      const get = dateStr => {
+        const idx = times.indexOf(dateStr);
+        return idx >= 0 ? maxes[idx] : null;
+      };
+      const tFri = get(friStr), tSat = get(satStr), tSun = get(sunStr);
+      const valid = [tFri, tSat, tSat, tSun].filter(v => v !== null); // 2×Sat weight
+      cantonWeekendTemp[code] = valid.length
+        ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length * 10) / 10
+        : null;
+    });
+
+    // Render canton grid
+    const grid = document.getElementById('weather-canton-grid');
+    grid.innerHTML = codes.map(code => {
+      const t = cantonWeekendTemp[code];
+      const tStr = t !== null ? `${t}°` : '—';
+      return `<div class="wcanton">
+        <div class="wcode">${code}</div>
+        <div class="wtemp" style="color:${tempColor(t)}">${tStr}</div>
+      </div>`;
+    }).join('');
+
+    document.getElementById('weather-loading').style.display = 'none';
+    applyFilters(); // re-filter in case temp filter is active
+  } catch (err) {
+    document.getElementById('weather-loading').textContent = '⚠️ Forecast unavailable';
+    console.warn('Weather fetch failed:', err);
+  }
+}
+
 // ── Filter ────────────────────────────────────────────────────────────────────
 function getFiltered() {
   const q = document.getElementById('search').value.toLowerCase();
@@ -823,6 +957,10 @@ function getFiltered() {
     if (travelOrigin && travelMaxMin > 0 && travelMaxMin < 105) {
       // Use real road-network polygon when available; skip filter if still loading
       if (isochronePolygon && !pointInPolygon(c.lat, c.lng, isochronePolygon)) return false;
+    }
+    if (weekendTempMin > 0) {
+      const t = cantonWeekendTemp[c.canton];
+      if (t === undefined || t === null || t < weekendTempMin) return false;
     }
     if (mapBoundsSnapshot && !mapBoundsSnapshot.contains(L.latLng(c.lat, c.lng))) return false;
     return true;
@@ -854,6 +992,10 @@ function renderList(filtered) {
     if (travelOrigin && travelMaxMin > 0) {
       const tm = travelTimeMin(c);
       if (tm !== null) chips.push(`<span class="itag travel">🕐 ~${fmtMinutes(Math.ceil(tm))}</span>`);
+    }
+    const wt = cantonWeekendTemp[c.canton];
+    if (wt !== undefined && wt !== null) {
+      chips.push(`<span class="itag weather" style="color:${tempColor(wt)}">🌤 ${wt}°</span>`);
     }
     c.amenities.slice(0, 3).forEach(a => {
       const chip = AMENITY_CHIPS.find(x => x.key === a);
@@ -1041,6 +1183,17 @@ document.querySelectorAll('.type-btn').forEach(btn => {
   });
 });
 
+// ── Weekend weather buttons ────────────────────────────────────────────────────
+document.querySelectorAll('#temp-btns .temp-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    weekendTempMin = parseInt(btn.dataset.temp);
+    document.querySelectorAll('#temp-btns .temp-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('dot-weather').classList.toggle('visible', weekendTempMin > 0);
+    applyFilters();
+  });
+});
+
 // ── Locate ────────────────────────────────────────────────────────────────────
 document.getElementById('btn-locate').addEventListener('click', () => {
   if (!navigator.geolocation) return alert('Geolocation not available.');
@@ -1061,6 +1214,9 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   activeAmenities.clear();
   activeWater.clear();
   activeCantons.clear();
+  weekendTempMin = 0;
+  document.querySelectorAll('#temp-btns .temp-btn').forEach(b => b.classList.toggle('active', b.dataset.temp === '0'));
+  document.getElementById('dot-weather').classList.remove('visible');
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   updateCantonCount();
   activeTypes = new Set(Object.keys(TYPES));
@@ -1197,6 +1353,7 @@ async function loadData() {
     updateCantonChipCounts();
     applyFilters();
     setTravelOrigin(DEFAULT_ORIGIN.lat, DEFAULT_ORIGIN.lng, DEFAULT_ORIGIN.label);
+    fetchWeekendWeather();
     document.getElementById('loading').style.display = 'none';
   } catch (err) {
     document.getElementById('loading').innerHTML =
