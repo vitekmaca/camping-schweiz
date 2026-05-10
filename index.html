@@ -883,7 +883,20 @@ function updateMap(filtered) {
   filtered.forEach(c => {
     const m = L.marker([c.lat, c.lng], { icon: typeIcons[c.type] })
       .bindPopup(buildPopup(c), { maxWidth: 320 });
-    m.on('mouseover', function() { this.openPopup(); });
+    let hoverTimer = null;
+    m.on('mouseover', function() {
+      clearTimeout(hoverTimer);
+      this.openPopup();
+    });
+    m.on('mouseout', function() {
+      hoverTimer = setTimeout(() => m.closePopup(), 120);
+    });
+    m.on('popupopen', function(e) {
+      const el = e.popup.getElement();
+      if (!el) return;
+      el.addEventListener('mouseenter', () => clearTimeout(hoverTimer));
+      el.addEventListener('mouseleave', () => { hoverTimer = setTimeout(() => m.closePopup(), 120); });
+    });
     m.on('click', () => {
       document.querySelectorAll('.item').forEach(el =>
         el.classList.toggle('highlighted', el.dataset.key === c.id));
