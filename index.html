@@ -929,10 +929,8 @@ async function fetchWeekendWeather() {
     if (temps.length) {
       const lo = Math.floor(Math.min(...temps) / 2) * 2;  // round down to even
       const hi = Math.ceil(Math.max(...temps) / 2) * 2;   // round up to even
-      const steps = [];
-      for (let i = 0; i < 6; i++) {
-        steps.push(Math.round(lo + (hi - lo) * i / 5 / 2) * 2); // 6 evenly spaced, snapped to even
-      }
+      const snap = v => Math.round(v / 2) * 2;
+      const steps = Array.from({length: 6}, (_, i) => snap(lo + (hi - lo) * i / 5));
       // Deduplicate and clamp
       const unique = [...new Set(steps)];
       const btnContainer = document.getElementById('temp-btns');
