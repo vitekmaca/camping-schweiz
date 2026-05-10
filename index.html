@@ -402,12 +402,8 @@
       <div class="section-body-inner">
         <div style="font-size:10px;color:#aaa;margin-bottom:6px;">Avg daytime high Fri + 2×Sat + Sun · Open-Meteo</div>
         <div style="font-size:11px;color:#555;margin-bottom:5px;">Min. weekend temperature</div>
-        <div style="display:flex;gap:4px;" id="temp-btns">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;" id="temp-btns">
           <button class="temp-btn active" data-temp="0">Any</button>
-          <button class="temp-btn" data-temp="12">≥12°</button>
-          <button class="temp-btn" data-temp="16">≥16°</button>
-          <button class="temp-btn" data-temp="20">≥20°</button>
-          <button class="temp-btn" data-temp="24">≥24°</button>
         </div>
         <div id="weather-canton-grid"></div>
         <div id="weather-loading" style="font-size:10px;color:#aaa;margin-top:6px;">⏳ Fetching forecasts…</div>
@@ -928,6 +924,22 @@ async function fetchWeekendWeather() {
       </div>`;
     }).join('');
 
+    // Build dynamic temp buttons from actual weekend range
+    const temps = Object.values(cantonWeekendTemp).filter(t => t !== null);
+    if (temps.length) {
+      const lo = Math.floor(Math.min(...temps) / 2) * 2;  // round down to even
+      const hi = Math.ceil(Math.max(...temps) / 2) * 2;   // round up to even
+      const steps = [];
+      for (let i = 0; i < 6; i++) {
+        steps.push(Math.round(lo + (hi - lo) * i / 5 / 2) * 2); // 6 evenly spaced, snapped to even
+      }
+      // Deduplicate and clamp
+      const unique = [...new Set(steps)];
+      const btnContainer = document.getElementById('temp-btns');
+      btnContainer.innerHTML = `<button class="temp-btn active" data-temp="0">Any</button>` +
+        unique.map(t => `<button class="temp-btn" data-temp="${t}">≥${t}°</button>`).join('');
+    }
+
     document.getElementById('weather-loading').style.display = 'none';
     applyFilters(); // re-filter in case temp filter is active
   } catch (err) {
@@ -1183,15 +1195,15 @@ document.querySelectorAll('.type-btn').forEach(btn => {
   });
 });
 
-// ── Weekend weather buttons ────────────────────────────────────────────────────
-document.querySelectorAll('#temp-btns .temp-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    weekendTempMin = parseInt(btn.dataset.temp);
-    document.querySelectorAll('#temp-btns .temp-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('dot-weather').classList.toggle('visible', weekendTempMin > 0);
-    applyFilters();
-  });
+// ── Weekend weather buttons (delegated — works for dynamically generated buttons too) ──
+document.getElementById('temp-btns').addEventListener('click', e => {
+  const btn = e.target.closest('.temp-btn');
+  if (!btn) return;
+  weekendTempMin = parseInt(btn.dataset.temp);
+  document.querySelectorAll('#temp-btns .temp-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dot-weather').classList.toggle('visible', weekendTempMin > 0);
+  applyFilters();
 });
 
 // ── Locate ────────────────────────────────────────────────────────────────────
