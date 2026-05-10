@@ -119,7 +119,8 @@
     "url_p4n": "https://park4night.com/en/place/7095",
     "url_osm": "https://www.openstreetmap.org/node/26860701",
     "website": "https://www.campingmoubra.ch/",
-    "phone": "+41 27 481 28 51"
+    "phone": "+41 27 481 28 51",
+    "url_osm_alt": "https://www.openstreetmap.org/way/245104137"
   },
   {
     "id": "osm-26860731",
@@ -243,7 +244,8 @@
     "url_p4n": "https://park4night.com/en/place/130679",
     "url_osm": "https://www.openstreetmap.org/node/412399525",
     "website": "https://www.camping-naas-sod.ch/",
-    "drinking_water": "yes"
+    "drinking_water": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/node/12012440012"
   },
   {
     "id": "osm-413344380",
@@ -889,26 +891,6 @@
     "dump_station": "yes"
   },
   {
-    "id": "osm-3626917564",
-    "name": "Rüti",
-    "lat": 46.989959,
-    "lng": 8.6335045,
-    "canton": "SZ",
-    "type": "stellplatz",
-    "amenities": [
-      "toilets"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=R%C3%BCti%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/node/3626917564",
-    "website": null
-  },
-  {
     "id": "osm-3682065518",
     "name": "Camping de la plage de Boudry",
     "lat": 46.9482463,
@@ -967,7 +949,8 @@
     "website": null,
     "fee": "yes",
     "operator": "Alpkorporation Vorderschwändi",
-    "drinking_water": "yes"
+    "drinking_water": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/node/13172781913"
   },
   {
     "id": "osm-4235737784",
@@ -1673,14 +1656,15 @@
     "distance_water_m": 20,
     "distance_town_m": null,
     "rating_google": null,
-    "rating_p4n": null,
+    "rating_p4n": 8.5,
     "url_google": "https://maps.google.com/?q=Area%20Camper%20Prato%20Leventina%2C%20Switzerland",
-    "url_p4n": null,
+    "url_p4n": "https://park4night.com/en/place/103905",
     "url_osm": "https://www.openstreetmap.org/node/6064840704",
     "website": null,
     "operator": "Comune",
     "dump_station": "yes",
-    "internet_access": "no"
+    "internet_access": "no",
+    "url_osm_alt": "https://www.openstreetmap.org/way/1503973445"
   },
   {
     "id": "osm-6180495676",
@@ -3609,24 +3593,6 @@
     "dump_station": "no"
   },
   {
-    "id": "osm-8869409793",
-    "name": "",
-    "lat": 46.5584449,
-    "lng": 9.6280403,
-    "canton": "GR",
-    "type": "stellplatz",
-    "amenities": [],
-    "near_water": "river",
-    "distance_water_m": 73,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=46.5584449,9.6280403",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/node/8869409793",
-    "website": null
-  },
-  {
     "id": "osm-8873064260",
     "name": "",
     "lat": 46.9250023,
@@ -3826,7 +3792,8 @@
     "url_p4n": "https://park4night.com/en/place/192135",
     "url_osm": "https://www.openstreetmap.org/node/8930961151",
     "website": "https://www.geissenhof-rona.ch/naturzeltplatz.html",
-    "fee": "yes"
+    "fee": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/node/8869409793"
   },
   {
     "id": "osm-8930993255",
@@ -3967,29 +3934,6 @@
     "drinking_water": "yes"
   },
   {
-    "id": "osm-8931238385",
-    "name": "RinerLodge,",
-    "lat": 46.7438549,
-    "lng": 9.7791778,
-    "canton": "GR",
-    "type": "stellplatz",
-    "amenities": [
-      "electricity"
-    ],
-    "near_water": "river",
-    "distance_water_m": 26,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=RinerLodge%2C%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/node/8931238385",
-    "website": null,
-    "fee": "yes",
-    "dump_station": "yes",
-    "drinking_water": "yes"
-  },
-  {
     "id": "osm-8931238386",
     "name": "RinerLodge",
     "lat": 46.7439182,
@@ -4018,7 +3962,9 @@
     "city": "Davos Glaris",
     "postcode": "7277",
     "dump_station": "yes",
-    "drinking_water": "yes"
+    "drinking_water": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/node/8931238385",
+    "fee": "yes"
   },
   {
     "id": "osm-8960352346",
@@ -4720,7 +4666,10 @@
     "email": "info@schluein.ch",
     "fee": "yes",
     "description": "CHF 25.-",
-    "capacity": "20"
+    "capacity": "20",
+    "url_osm_alt": "https://www.openstreetmap.org/way/1099631965",
+    "dump_station": "yes",
+    "internet_access": "no"
   },
   {
     "id": "osm-9042287030",
@@ -5113,7 +5062,12 @@
     "email": "info@unterbaech.ch",
     "fee": "yes",
     "description": "CHF 30.-, ganzjährig",
-    "capacity": "6"
+    "capacity": "6",
+    "url_osm_alt": "https://www.openstreetmap.org/way/1308278140",
+    "website_alt": "https://www.parknsleep.app/ps/27264132",
+    "operator": "Unterbäch Tourismus",
+    "dump_station": "yes",
+    "internet_access": "wlan"
   },
   {
     "id": "osm-9438432649",
@@ -5190,7 +5144,11 @@
     "phone": "+41 41 820 35 96",
     "city": "Seelisberg",
     "postcode": "6377",
-    "internet_access": "wlan"
+    "internet_access": "wlan",
+    "url_osm_alt": "https://www.openstreetmap.org/way/973619870",
+    "email": "camping.seelisberg@bluewin.ch",
+    "fee": "yes",
+    "dogs_osm": "no"
   },
   {
     "id": "osm-9438529664",
@@ -5861,24 +5819,6 @@
     "internet_access": "no"
   },
   {
-    "id": "osm-12012440012",
-    "name": "Camping Naas-Sod",
-    "lat": 47.1122433,
-    "lng": 8.6236772,
-    "canton": "ZG",
-    "type": "campsite",
-    "amenities": [],
-    "near_water": "lake",
-    "distance_water_m": 86,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Camping%20Naas-Sod%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/node/12012440012",
-    "website": null
-  },
-  {
     "id": "osm-12098753298",
     "name": "Stellplatz Madris",
     "lat": 46.4525391,
@@ -6217,7 +6157,8 @@
     "url_google": "https://maps.google.com/?q=46.8129715,9.3790692",
     "url_p4n": null,
     "url_osm": "https://www.openstreetmap.org/node/12208787901",
-    "website": null
+    "website": null,
+    "url_osm_alt": "https://www.openstreetmap.org/way/1299781024"
   },
   {
     "id": "osm-12209364968",
@@ -6467,55 +6408,6 @@
     "website": null
   },
   {
-    "id": "osm-13172781913",
-    "name": "Matt",
-    "lat": 47.1071285,
-    "lng": 9.0052083,
-    "canton": "GL",
-    "type": "campsite",
-    "amenities": [
-      "toilets"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Matt%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/node/13172781913",
-    "website": null,
-    "fee": "yes",
-    "operator": "Alpkorporation Vorderschwändi",
-    "drinking_water": "yes"
-  },
-  {
-    "id": "osm-13184313904",
-    "name": "byHerger",
-    "lat": 46.8728918,
-    "lng": 8.6447608,
-    "canton": "UR",
-    "type": "campsite",
-    "amenities": [
-      "showers",
-      "wifi",
-      "playground",
-      "electricity",
-      "dogs",
-      "toilets"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": 9.5,
-    "url_google": "https://maps.google.com/?q=byHerger%2C%20Switzerland",
-    "url_p4n": "https://park4night.com/en/place/301927",
-    "url_osm": "https://www.openstreetmap.org/node/13184313904",
-    "website": null,
-    "charge": "10 CHF"
-  },
-  {
     "id": "osm-13440000875",
     "name": "",
     "lat": 46.3975853,
@@ -6582,7 +6474,8 @@
     "url_osm": "https://www.openstreetmap.org/node/13653063049",
     "website": null,
     "fee": "CHF 14.-",
-    "capacity": "2"
+    "capacity": "2",
+    "url_osm_alt": "https://www.openstreetmap.org/way/1490764090"
   },
   {
     "id": "osm-13767949037",
@@ -7387,7 +7280,8 @@
     "city": "Andermatt",
     "postcode": "6490",
     "dump_station": "yes",
-    "drinking_water": "yes"
+    "drinking_water": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/way/512727244"
   },
   {
     "id": "osm-40797907",
@@ -10146,29 +10040,6 @@
     "internet_access": "wlan"
   },
   {
-    "id": "osm-219141435",
-    "name": "Rinerlodge",
-    "lat": 46.7452408,
-    "lng": 9.7794049,
-    "canton": "GR",
-    "type": "stellplatz",
-    "amenities": [
-      "toilets",
-      "electricity"
-    ],
-    "near_water": "river",
-    "distance_water_m": 32,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Rinerlodge%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/219141435",
-    "website": null,
-    "fee": "yes",
-    "dump_station": "yes"
-  },
-  {
     "id": "osm-219299367",
     "name": "Eggmatte",
     "lat": 46.57029,
@@ -11071,7 +10942,10 @@
     "website": "https://www.camping-hasenweide.ch/",
     "operator": "Gebrüder Zurbrügg, Maya Müller",
     "city": "Lenk im Simmental",
-    "postcode": "3775"
+    "postcode": "3775",
+    "url_osm_alt": "https://www.openstreetmap.org/way/826612229",
+    "dump_station": "yes",
+    "drinking_water": "yes"
   },
   {
     "id": "osm-244605042",
@@ -11090,24 +10964,6 @@
     "url_p4n": null,
     "url_osm": "https://www.openstreetmap.org/way/244605042",
     "website": "https://inf-fni.org/fr/places/club-gymnique-lumire/"
-  },
-  {
-    "id": "osm-245104137",
-    "name": "Camping Moubra",
-    "lat": 46.3046641,
-    "lng": 7.4814903,
-    "canton": "VS",
-    "type": "campsite",
-    "amenities": [],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Camping%20Moubra%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/245104137",
-    "website": null
   },
   {
     "id": "osm-245777936",
@@ -11966,7 +11822,8 @@
     "url_osm": "https://www.openstreetmap.org/way/288630307",
     "website": "https://www.camping-rive-bleue.ch/",
     "fee": "yes",
-    "dump_station": "yes"
+    "dump_station": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/way/289916794"
   },
   {
     "id": "osm-288800611",
@@ -12018,27 +11875,6 @@
     "postcode": "6390",
     "drinking_water": "yes",
     "internet_access": "wlan"
-  },
-  {
-    "id": "osm-289916794",
-    "name": "Rive Bleue",
-    "lat": 46.3875842,
-    "lng": 6.8597722,
-    "canton": "VS",
-    "type": "stellplatz",
-    "amenities": [
-      "electricity"
-    ],
-    "near_water": "lake",
-    "distance_water_m": 65,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Rive%20Bleue%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/289916794",
-    "website": null,
-    "fee": "yes"
   },
   {
     "id": "osm-290229522",
@@ -14696,30 +14532,6 @@
     "postcode": "2354"
   },
   {
-    "id": "osm-439934359",
-    "name": "Camping des Buis",
-    "lat": 46.6625296,
-    "lng": 6.5099944,
-    "canton": "VD",
-    "type": "campsite",
-    "amenities": [
-      "toilets",
-      "showers",
-      "electricity"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Camping%20des%20Buis%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/439934359",
-    "website": "https://www.piscinedelavenoge.ch/camping/",
-    "dump_station": "yes",
-    "drinking_water": "yes"
-  },
-  {
     "id": "osm-440249230",
     "name": "Grimselblick",
     "lat": 46.7068589,
@@ -14863,31 +14675,8 @@
     "url_osm": "https://www.openstreetmap.org/way/440661352",
     "website": "https://www.piscinedelavenoge.ch/camping/",
     "dump_station": "yes",
-    "drinking_water": "yes"
-  },
-  {
-    "id": "osm-440661353",
-    "name": "Camping des Buis",
-    "lat": 46.662672,
-    "lng": 6.5082462,
-    "canton": "VD",
-    "type": "campsite",
-    "amenities": [
-      "toilets",
-      "showers",
-      "electricity"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Camping%20des%20Buis%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/440661353",
-    "website": "https://www.piscinedelavenoge.ch/camping/",
-    "dump_station": "yes",
-    "drinking_water": "yes"
+    "drinking_water": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/way/440661353"
   },
   {
     "id": "osm-446281898",
@@ -15119,35 +14908,6 @@
     "website": "https://www.camping-schoenengrund.ch/"
   },
   {
-    "id": "osm-512727244",
-    "name": "Gotthard Camping Andermatt",
-    "lat": 46.6314998,
-    "lng": 8.5912528,
-    "canton": "UR",
-    "type": "campsite",
-    "amenities": [
-      "toilets",
-      "showers",
-      "electricity",
-      "accessible"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Gotthard%20Camping%20Andermatt%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/512727244",
-    "website": "http://gotthard-camping.ch/",
-    "phone": "+41 79 226 30 76",
-    "email": "mail@gotthard-camping.ch",
-    "fee": "yes",
-    "city": "Andermatt",
-    "postcode": "6490",
-    "drinking_water": "yes"
-  },
-  {
     "id": "osm-517351359",
     "name": "Camping de Moudon",
     "lat": 46.6610691,
@@ -15368,7 +15128,8 @@
     "url_p4n": "https://park4night.com/en/place/564006",
     "url_osm": "https://www.openstreetmap.org/way/604558755",
     "website": null,
-    "drinking_water": "yes"
+    "drinking_water": "yes",
+    "url_osm_alt": "https://www.openstreetmap.org/node/3626917564"
   },
   {
     "id": "osm-607973577",
@@ -16467,30 +16228,6 @@
     "postcode": "2887"
   },
   {
-    "id": "osm-826612229",
-    "name": "Hasenweide",
-    "lat": 46.4274575,
-    "lng": 7.4763446,
-    "canton": "BE",
-    "type": "campsite",
-    "amenities": [
-      "toilets",
-      "showers",
-      "electricity"
-    ],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Hasenweide%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/826612229",
-    "website": null,
-    "dump_station": "yes",
-    "drinking_water": "yes"
-  },
-  {
     "id": "osm-835496205",
     "name": "CCP Kohler",
     "lat": 47.3422014,
@@ -16879,31 +16616,6 @@
     "url_p4n": null,
     "url_osm": "https://www.openstreetmap.org/way/969223336",
     "website": null
-  },
-  {
-    "id": "osm-973619870",
-    "name": "Camping Seelisberg",
-    "lat": 46.9600673,
-    "lng": 8.5748859,
-    "canton": "UR",
-    "type": "campsite",
-    "amenities": [
-      "toilets",
-      "showers"
-    ],
-    "near_water": "lake",
-    "distance_water_m": 32,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Camping%20Seelisberg%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/973619870",
-    "website": null,
-    "phone": "+41 41 8203596",
-    "email": "camping.seelisberg@bluewin.ch",
-    "fee": "yes",
-    "dogs_osm": "no"
   },
   {
     "id": "osm-988030140",
@@ -17390,28 +17102,6 @@
     "internet_access": "wlan"
   },
   {
-    "id": "osm-1099631965",
-    "name": "",
-    "lat": 46.7777368,
-    "lng": 9.2140058,
-    "canton": "GR",
-    "type": "stellplatz",
-    "amenities": [],
-    "near_water": "river",
-    "distance_water_m": 48,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=46.7777368,9.2140058",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/1099631965",
-    "website": null,
-    "fee": "no",
-    "capacity": "30",
-    "dump_station": "yes",
-    "internet_access": "no"
-  },
-  {
     "id": "osm-1100549860",
     "name": "Parking des Courtons",
     "lat": 46.9540186,
@@ -17475,14 +17165,16 @@
     "distance_water_m": null,
     "distance_town_m": null,
     "rating_google": null,
-    "rating_p4n": null,
+    "rating_p4n": 9.5,
     "url_google": "https://maps.google.com/?q=byHerger%2C%20Switzerland",
-    "url_p4n": null,
+    "url_p4n": "https://park4night.com/en/place/301927",
     "url_osm": "https://www.openstreetmap.org/way/1112675249",
     "website": "https://www.byherger.ch/camper-stellpl%C3%A4tze/",
     "opening_hours": "24/7",
     "fee": "yes",
-    "capacity": "3"
+    "capacity": "3",
+    "url_osm_alt": "https://www.openstreetmap.org/node/13184313904",
+    "charge": "10 CHF"
   },
   {
     "id": "osm-1116210786",
@@ -18059,24 +17751,6 @@
     "stars": "4"
   },
   {
-    "id": "osm-1299781024",
-    "name": "",
-    "lat": 46.8129217,
-    "lng": 9.3789927,
-    "canton": "GR",
-    "type": "stellplatz",
-    "amenities": [],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=46.8129217,9.3789927",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/1299781024",
-    "website": null
-  },
-  {
     "id": "osm-1300597462",
     "name": "Stellplatz Camp Bietschhorn",
     "lat": 46.2770667,
@@ -18250,31 +17924,6 @@
     "email": "welcome@alpsafari.ch",
     "city": "Nax",
     "postcode": "1973",
-    "internet_access": "wlan"
-  },
-  {
-    "id": "osm-1308278140",
-    "name": "Stellplatz Seepark Augstbord",
-    "lat": 46.2886594,
-    "lng": 7.8014452,
-    "canton": "VS",
-    "type": "stellplatz",
-    "amenities": [
-      "electricity",
-      "wifi"
-    ],
-    "near_water": "river",
-    "distance_water_m": 41,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=Stellplatz%20Seepark%20Augstbord%2C%20Switzerland",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/1308278140",
-    "website": "https://www.parknsleep.app/ps/27264132",
-    "description": "Dusche vorhanden, Ver- und Entsorgung vorhanden",
-    "operator": "Unterbäch Tourismus",
-    "dump_station": "yes",
     "internet_access": "wlan"
   },
   {
@@ -18666,24 +18315,6 @@
     "internet_access": "no"
   },
   {
-    "id": "osm-1490764090",
-    "name": "",
-    "lat": 47.4458152,
-    "lng": 9.5310973,
-    "canton": "AR",
-    "type": "campsite",
-    "amenities": [],
-    "near_water": null,
-    "distance_water_m": null,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": null,
-    "url_google": "https://maps.google.com/?q=47.4458152,9.5310973",
-    "url_p4n": null,
-    "url_osm": "https://www.openstreetmap.org/way/1490764090",
-    "website": null
-  },
-  {
     "id": "osm-1497141962",
     "name": "Städerried Camp",
     "lat": 46.9532155,
@@ -18704,29 +18335,6 @@
     "fee": "yes",
     "city": "Alpnachstad",
     "postcode": "6053"
-  },
-  {
-    "id": "osm-1503973445",
-    "name": "Area Camper Prato Leventina",
-    "lat": 46.4821146,
-    "lng": 8.7573639,
-    "canton": "TI",
-    "type": "stellplatz",
-    "amenities": [
-      "dogs",
-      "toilets",
-      "playground",
-      "electricity"
-    ],
-    "near_water": "river",
-    "distance_water_m": 14,
-    "distance_town_m": null,
-    "rating_google": null,
-    "rating_p4n": 8.5,
-    "url_google": "https://maps.google.com/?q=Area%20Camper%20Prato%20Leventina%2C%20Switzerland",
-    "url_p4n": "https://park4night.com/en/place/103905",
-    "url_osm": "https://www.openstreetmap.org/way/1503973445",
-    "website": null
   },
   {
     "id": "p4n-50025",
