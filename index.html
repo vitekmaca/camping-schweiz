@@ -569,7 +569,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 Object.keys(TYPES).forEach(type => {
-  clusterGroups[type] = L.markerClusterGroup({ maxClusterRadius: 80, disableClusteringAtZoom: 13 });
+  clusterGroups[type] = L.markerClusterGroup({ maxClusterRadius: 40, disableClusteringAtZoom: 11 });
   map.addLayer(clusterGroups[type]);
 });
 
