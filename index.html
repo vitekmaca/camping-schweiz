@@ -883,6 +883,7 @@ function updateMap(filtered) {
   filtered.forEach(c => {
     const m = L.marker([c.lat, c.lng], { icon: typeIcons[c.type] })
       .bindPopup(buildPopup(c), { maxWidth: 320 });
+    m.on('mouseover', function() { this.openPopup(); });
     m.on('click', () => {
       document.querySelectorAll('.item').forEach(el =>
         el.classList.toggle('highlighted', el.dataset.key === c.id));
