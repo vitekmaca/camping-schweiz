@@ -274,11 +274,11 @@
             <span class="tb-icon">🚜</span>
             <span><div>Farm</div><div class="tb-count" id="cnt-farm"></div></span>
           </button>
-          <button class="type-btn active" data-type="stellplatz">
+          <button class="type-btn" data-type="stellplatz">
             <span class="tb-icon">🚐</span>
             <span><div>Stellplatz</div><div class="tb-count" id="cnt-stellplatz"></div></span>
           </button>
-          <button class="type-btn active" data-type="bivouac">
+          <button class="type-btn" data-type="bivouac">
             <span class="tb-icon">🏕️</span>
             <span><div>Bivouac</div><div class="tb-count" id="cnt-bivouac"></div></span>
           </button>
@@ -537,7 +537,7 @@ const WATER_CHIPS = [
 // ── State ─────────────────────────────────────────────────────────────────────
 let allCamps = [];
 let markers = {};
-let activeTypes = new Set(Object.keys(TYPES));
+let activeTypes = new Set(['campsite', 'farm']);
 let activeAmenities = new Set();
 let activeWater = new Set();
 let activeCantons = new Set();
