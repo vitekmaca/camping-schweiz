@@ -370,9 +370,9 @@
           <span class="section-label">Max travel time</span>
           <span id="travel-time-label" style="font-size:12px;font-weight:700;color:#e65100;">Off</span>
         </div>
-        <input type="range" id="travel-slider" min="0" max="90" step="15" value="0" />
+        <input type="range" id="travel-slider" min="0" max="105" step="15" value="0" />
         <div style="display:flex;justify-content:space-between;font-size:9px;color:#bbb;margin-top:3px;">
-          <span>Off</span><span>30m</span><span>1h</span><span>1h30</span>
+          <span>Off</span><span>30m</span><span>1h</span><span>1h30</span><span style="color:#e65100;">All</span>
         </div>
         <div id="travel-source-note" style="font-size:10px;color:#aaa;margin-top:6px;display:none;">🛣 OpenStreetMap road network</div>
       </div>
@@ -722,7 +722,7 @@ async function updateIsochrone() {
   if (isochroneLayer) { map.removeLayer(isochroneLayer); isochroneLayer = null; }
   isochronePolygon = null;
 
-  if (!travelOrigin || travelMaxMin === 0) { applyFilters(); return; }
+  if (!travelOrigin || travelMaxMin === 0 || travelMaxMin >= 105) { applyFilters(); return; }
 
   document.getElementById('travel-time-label').textContent = '⏳';
   document.getElementById('travel-loading').style.display = 'block';
@@ -763,8 +763,11 @@ async function updateIsochrone() {
         };
       },
       onEachFeature: (feat, layer) => {
-        layer.bindTooltip(fmtMinutes(feat.properties.contour),
-          { permanent: true, direction: 'right', className: 'travel-ring-label' });
+        // Only label the outer (max) boundary — reference rings are visual guides only
+        if (feat.properties.contour === travelMaxMin) {
+          layer.bindTooltip(fmtMinutes(feat.properties.contour),
+            { permanent: true, direction: 'right', className: 'travel-ring-label' });
+        }
       },
     }).addTo(map);
 
@@ -813,7 +816,7 @@ function getFiltered() {
       const wc = WATER_CHIPS.find(x => x.key === w);
       if (wc && !wc.filterFn(c)) return false;
     }
-    if (travelOrigin && travelMaxMin > 0) {
+    if (travelOrigin && travelMaxMin > 0 && travelMaxMin < 105) {
       // Use real road-network polygon when available; skip filter if still loading
       if (isochronePolygon && !pointInPolygon(c.lat, c.lng, isochronePolygon)) return false;
     }
@@ -930,11 +933,13 @@ function updateSectionDots() {
   document.getElementById('dot-travel').classList.toggle('visible', travelActive);
   const headerInfo = document.getElementById('travel-header-info');
   if (headerInfo) {
-    if (travelActive) {
-      const originShort = (travelOrigin._label || '').split(',')[0] || 'custom';
+    const originShort = (travelOrigin?._label || '').split(',')[0] || 'custom';
+    if (travelMaxMin >= 105 && travelOrigin) {
+      headerInfo.textContent = `· all from ${originShort}`;
+    } else if (travelActive) {
       headerInfo.textContent = `· ${fmtMinutes(travelMaxMin)} from ${originShort}`;
     } else if (travelOrigin && travelOrigin._label) {
-      headerInfo.textContent = `· from ${travelOrigin._label.split(',')[0]}`;
+      headerInfo.textContent = `· from ${originShort}`;
     } else {
       headerInfo.textContent = '';
     }
@@ -1128,11 +1133,21 @@ map.on('click', e => {
 
 document.getElementById('travel-slider').addEventListener('input', function() {
   travelMaxMin = parseInt(this.value);
+  const isAll = travelMaxMin >= 105;
   document.getElementById('travel-time-label').textContent =
-    travelMaxMin === 0 ? 'Off' : fmtMinutes(travelMaxMin);
+    isAll ? '>1h30' : (travelMaxMin === 0 ? 'Off' : fmtMinutes(travelMaxMin));
   updateSliderTrack();
   updateSectionDots();
-  scheduleIsochroneUpdate();
+  if (isAll) {
+    // Show all camps — clear any active isochrone but keep origin marker
+    if (isochroneLayer) { map.removeLayer(isochroneLayer); isochroneLayer = null; }
+    isochronePolygon = null;
+    clearTimeout(isochroneDebounce);
+    document.getElementById('travel-source-note').style.display = 'none';
+    applyFilters();
+  } else {
+    scheduleIsochroneUpdate();
+  }
 });
 
 
