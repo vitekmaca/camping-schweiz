@@ -163,6 +163,7 @@
     .travel-ring-label.leaflet-tooltip { background: rgba(230,81,0,.85); color: #fff; border: none; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
     .travel-ring-label.leaflet-tooltip::before { display: none; }
     .itag.travel { background: #fff3e0; color: #e65100; }
+    .spinner-small { display: inline-block; width: 10px; height: 10px; border: 2px solid #f0a070; border-top-color: #e65100; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 3px; }
 
     /* ── Map ── */
     #map { flex: 1; }
@@ -184,6 +185,14 @@
     .popup-link.p4n    { background: #e8871a; }
     .popup-link.osm    { background: #3949ab; }
     .popup-link.web    { background: #2d6a4f; }
+
+    /* ── Travel loading ── */
+    .spinner-small {
+      display: inline-block; width: 10px; height: 10px;
+      border: 2px solid rgba(230,81,0,.3); border-top-color: #e65100;
+      border-radius: 50%; animation: spin .8s linear infinite;
+      vertical-align: middle; margin-right: 3px;
+    }
 
     /* ── Loading ── */
     #loading {
@@ -343,32 +352,29 @@
   </div>
 
   <!-- Travel time -->
-  <div class="filter-section collapsed" id="section-travel">
+  <div class="filter-section" id="section-travel">
     <div class="section-header">
-      <span class="section-label">Travel Time</span>
+      <span class="section-label">Travel Time <span id="travel-header-info" style="font-weight:400;text-transform:none;font-size:10px;color:#e65100;"></span></span>
       <span class="section-dot" id="dot-travel"></span>
       <span class="section-arrow">▼</span>
     </div>
-    <div class="section-body hidden">
+    <div class="section-body">
       <div class="section-body-inner">
         <div style="display:flex;gap:6px;margin-bottom:8px;">
           <button class="origin-btn" id="btn-set-origin">📍 Set start</button>
           <button class="origin-btn" id="btn-use-location">🔵 My location</button>
         </div>
         <div id="origin-label"></div>
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-          <span class="section-label" style="flex-shrink:0;">Speed</span>
-          <input type="number" id="travel-speed-input" value="90" min="30" max="200" />
-          <span style="font-size:11px;color:#888;">km/h · ×1.4 terrain</span>
-        </div>
+        <div id="travel-loading" style="display:none;font-size:10px;color:#e65100;margin-bottom:6px;"><span class="spinner-small"></span> Loading road isochrone…</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
           <span class="section-label">Max travel time</span>
           <span id="travel-time-label" style="font-size:12px;font-weight:700;color:#e65100;">Off</span>
         </div>
-        <input type="range" id="travel-slider" min="0" max="240" step="15" value="0" />
+        <input type="range" id="travel-slider" min="0" max="90" step="15" value="0" />
         <div style="display:flex;justify-content:space-between;font-size:9px;color:#bbb;margin-top:3px;">
-          <span>Off</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span>
+          <span>Off</span><span>30m</span><span>1h</span><span>1h30</span>
         </div>
+        <div id="travel-source-note" style="font-size:10px;color:#aaa;margin-top:6px;display:none;">🛣 OpenStreetMap road network</div>
       </div>
     </div>
   </div>
@@ -536,9 +542,12 @@ let activeAmenities = new Set();
 let activeWater = new Set();
 let activeCantons = new Set();
 const DEFAULT_ORIGIN = { lat: 47.3736, lng: 8.4867, label: 'In der Wässeri 25, Zürich' };
-let travelOrigin = null, travelMaxMin = 0, travelSpeed = 90;
-let travelOriginMarker = null, travelCircles = [], pickingOrigin = false;
+let travelOrigin = null, travelMaxMin = 0;
+let travelOriginMarker = null, pickingOrigin = false;
+let isochroneLayer = null, isochronePolygon = null, isochroneDebounce = null;
 let mapBoundsSnapshot = null;
+
+const VALHALLA_URL = 'https://valhalla1.openstreetmap.de/isochrone';
 
 const CANTONS = [
   ['AG','Aargau'],['AI','App. I.Rh.'],['AR','App. A.Rh.'],['BE','Bern'],
@@ -681,21 +690,109 @@ function haversine(lat1, lng1, lat2, lng2) {
 const fmtDist = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(1)} km`;
 
 // ── Travel time helpers ───────────────────────────────────────────────────────
-const TERRAIN_FACTOR = 1.4;
-function travelTimeMin(lat, lng) {
+// Approximate only (for chip display) — filter uses real Valhalla polygon
+function travelTimeMin(camp) {
   if (!travelOrigin) return null;
-  const distM = haversine(travelOrigin.lat, travelOrigin.lng, lat, lng);
-  return (distM * TERRAIN_FACTOR / 1000) / travelSpeed * 60;
+  const distM = haversine(travelOrigin.lat, travelOrigin.lng, camp.lat, camp.lng);
+  return (distM * 1.4 / 1000) / 90 * 60;
 }
 function fmtMinutes(m) {
-  if (m === 0) return 'Off';
+  if (!m || m <= 0) return 'Off';
+  m = Math.round(m);
   const h = Math.floor(m / 60), mn = m % 60;
   if (h === 0) return `${mn} min`;
   if (mn === 0) return `${h}h`;
   return `${h}h ${mn}min`;
 }
-function radiusForMinutes(min) {
-  return (min / 60) * travelSpeed * 1000 / TERRAIN_FACTOR;
+
+// ── Point-in-polygon (ray casting, GeoJSON coords = [lng, lat]) ───────────────
+function pointInPolygon(lat, lng, coords) {
+  let inside = false;
+  for (let i = 0, j = coords.length - 1; i < coords.length; j = i++) {
+    const xi = coords[i][0], yi = coords[i][1];
+    const xj = coords[j][0], yj = coords[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi))
+      inside = !inside;
+  }
+  return inside;
+}
+
+// ── Valhalla road-network isochrone ───────────────────────────────────────────
+async function updateIsochrone() {
+  if (isochroneLayer) { map.removeLayer(isochroneLayer); isochroneLayer = null; }
+  isochronePolygon = null;
+
+  if (!travelOrigin || travelMaxMin === 0) { applyFilters(); return; }
+
+  document.getElementById('travel-time-label').textContent = '⏳';
+  document.getElementById('travel-loading').style.display = 'block';
+
+  try {
+    const refTimes = [30, 60].filter(t => t < travelMaxMin);
+    const allTimes = [...refTimes, travelMaxMin];
+
+    const body = {
+      locations: [{ lon: travelOrigin.lng, lat: travelOrigin.lat }],
+      costing: 'auto',
+      contours: allTimes.map(t => ({ time: t })),
+      polygons: true,
+    };
+
+    const res = await fetch(VALHALLA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const geojson = await res.json();
+
+    // Sort largest first so outer polygon draws under inner rings
+    const features = (geojson.features || []).sort(
+      (a, b) => b.properties.contour - a.properties.contour);
+
+    isochroneLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+      style: feat => {
+        const isMax = feat.properties.contour === travelMaxMin;
+        return {
+          color: '#e65100',
+          weight: isMax ? 2.5 : 1.5,
+          opacity: isMax ? 0.9 : 0.55,
+          fillColor: '#e65100',
+          fillOpacity: isMax ? 0.07 : 0,
+          dashArray: isMax ? null : '6 8',
+        };
+      },
+      onEachFeature: (feat, layer) => {
+        layer.bindTooltip(fmtMinutes(feat.properties.contour),
+          { permanent: true, direction: 'right', className: 'travel-ring-label' });
+      },
+    }).addTo(map);
+
+    // Outermost polygon for point-in-polygon filter
+    const maxFeat = features.find(f => f.properties.contour === travelMaxMin);
+    if (maxFeat?.geometry) {
+      const geom = maxFeat.geometry;
+      isochronePolygon = geom.type === 'Polygon'
+        ? geom.coordinates[0]
+        : geom.coordinates[0][0];
+    }
+
+    document.getElementById('travel-time-label').textContent = fmtMinutes(travelMaxMin);
+    document.getElementById('travel-source-note').style.display = 'block';
+
+  } catch (err) {
+    console.warn('Valhalla isochrone failed:', err);
+    document.getElementById('travel-time-label').textContent = fmtMinutes(travelMaxMin) + ' ⚠️';
+  }
+
+  document.getElementById('travel-loading').style.display = 'none';
+  updateSectionDots();
+  applyFilters();
+}
+
+function scheduleIsochroneUpdate() {
+  clearTimeout(isochroneDebounce);
+  isochroneDebounce = setTimeout(updateIsochrone, 600);
 }
 
 // ── Filter ────────────────────────────────────────────────────────────────────
@@ -717,8 +814,8 @@ function getFiltered() {
       if (wc && !wc.filterFn(c)) return false;
     }
     if (travelOrigin && travelMaxMin > 0) {
-      const t = travelTimeMin(c.lat, c.lng);
-      if (t === null || t > travelMaxMin) return false;
+      // Use real road-network polygon when available; skip filter if still loading
+      if (isochronePolygon && !pointInPolygon(c.lat, c.lng, isochronePolygon)) return false;
     }
     if (mapBoundsSnapshot && !mapBoundsSnapshot.contains(L.latLng(c.lat, c.lng))) return false;
     return true;
@@ -747,9 +844,9 @@ function renderList(filtered) {
     chips.push(`<span class="itag type">${c.canton}</span>`);
     if (c.near_water) chips.push(`<span class="itag water">${c.near_water === 'lake' ? '🏞️' : '🌊'} ${c.near_water}</span>`);
     if (c.rating_google) chips.push(`<span class="itag rating">⭐ ${c.rating_google.toFixed(1)}</span>`);
-    if (travelOrigin) {
-      const tm = travelTimeMin(c.lat, c.lng);
-      if (tm !== null) chips.push(`<span class="itag travel">🕐 ${fmtMinutes(Math.round(tm / 15) * 15)}</span>`);
+    if (travelOrigin && travelMaxMin > 0) {
+      const tm = travelTimeMin(c);
+      if (tm !== null) chips.push(`<span class="itag travel">🕐 ~${fmtMinutes(Math.ceil(tm))}</span>`);
     }
     c.amenities.slice(0, 3).forEach(a => {
       const chip = AMENITY_CHIPS.find(x => x.key === a);
@@ -829,7 +926,19 @@ function updateSectionDots() {
   document.getElementById('dot-rating').classList.toggle('visible', !!document.getElementById('p4n-rating-filter').value);
   document.getElementById('dot-amenities').classList.toggle('visible', activeAmenities.size > 0);
   document.getElementById('dot-water').classList.toggle('visible', activeWater.size > 0);
-  document.getElementById('dot-travel').classList.toggle('visible', travelOrigin !== null && travelMaxMin > 0);
+  const travelActive = travelOrigin !== null && travelMaxMin > 0;
+  document.getElementById('dot-travel').classList.toggle('visible', travelActive);
+  const headerInfo = document.getElementById('travel-header-info');
+  if (headerInfo) {
+    if (travelActive) {
+      const originShort = (travelOrigin._label || '').split(',')[0] || 'custom';
+      headerInfo.textContent = `· ${fmtMinutes(travelMaxMin)} from ${originShort}`;
+    } else if (travelOrigin && travelOrigin._label) {
+      headerInfo.textContent = `· from ${travelOrigin._label.split(',')[0]}`;
+    } else {
+      headerInfo.textContent = '';
+    }
+  }
 }
 
 function updateCantonChipCounts() {
@@ -937,14 +1046,15 @@ document.getElementById('btn-clear').addEventListener('click', () => {
     map.addLayer(clusterGroups[b.dataset.type]);
   });
   userLat = null; userLng = null;
-  travelMaxMin = 0; travelSpeed = 90;
+  travelMaxMin = 0;
   document.getElementById('travel-slider').value = 0;
   document.getElementById('travel-time-label').textContent = 'Off';
-  document.getElementById('travel-speed-input').value = 90;
   document.getElementById('btn-set-origin').textContent = '📍 Set start';
   document.getElementById('btn-set-origin').classList.remove('picking');
   if (travelOriginMarker) { map.removeLayer(travelOriginMarker); travelOriginMarker = null; }
-  travelCircles.forEach(c => map.removeLayer(c)); travelCircles = [];
+  if (isochroneLayer) { map.removeLayer(isochroneLayer); isochroneLayer = null; }
+  isochronePolygon = null;
+  clearTimeout(isochroneDebounce);
   updateSliderTrack();
   setTravelOrigin(DEFAULT_ORIGIN.lat, DEFAULT_ORIGIN.lng, DEFAULT_ORIGIN.label);
   mapBoundsSnapshot = null;
@@ -976,39 +1086,20 @@ function updateSliderTrack() {
   sl.style.setProperty('--pct', pct + '%');
 }
 
-function updateTravelCircles() {
-  travelCircles.forEach(c => map.removeLayer(c));
-  travelCircles = [];
-  if (!travelOrigin || travelMaxMin === 0) return;
-  const refTimes = [60, 120, 180].filter(t => t <= travelMaxMin + 45);
-  refTimes.forEach(t => {
-    const c = L.circle([travelOrigin.lat, travelOrigin.lng], {
-      radius: radiusForMinutes(t),
-      color: '#e65100', weight: 1, opacity: 0.5,
-      fillColor: '#e65100', fillOpacity: 0.03, dashArray: '5 7',
-    }).bindTooltip(fmtMinutes(t), { permanent: true, direction: 'right', className: 'travel-ring-label' }).addTo(map);
-    travelCircles.push(c);
-  });
-  const maxC = L.circle([travelOrigin.lat, travelOrigin.lng], {
-    radius: radiusForMinutes(travelMaxMin),
-    color: '#e65100', weight: 2, opacity: 0.8,
-    fillColor: '#e65100', fillOpacity: 0.06,
-  }).addTo(map);
-  travelCircles.push(maxC);
-}
 
 function setTravelOrigin(lat, lng, label) {
-  travelOrigin = { lat, lng };
+  const displayLabel = label || `${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+  travelOrigin = { lat, lng, _label: displayLabel };
   if (travelOriginMarker) map.removeLayer(travelOriginMarker);
   travelOriginMarker = L.circleMarker([lat, lng], {
     radius: 9, color: '#e65100', fillColor: '#e65100', fillOpacity: 0.9, weight: 2,
-  }).addTo(map).bindPopup(label || 'Travel start point');
+  }).addTo(map).bindPopup(`<b>Start:</b> ${displayLabel}`);
   const lbl = document.getElementById('origin-label');
   lbl.style.display = 'block';
-  lbl.textContent = label || `${lat.toFixed(3)}°N, ${lng.toFixed(3)}°E`;
-  updateTravelCircles();
+  lbl.textContent = `📍 ${displayLabel}`;
   updateSectionDots();
-  applyFilters();
+  if (travelMaxMin > 0) scheduleIsochroneUpdate();
+  else applyFilters();
 }
 
 document.getElementById('btn-set-origin').addEventListener('click', () => {
@@ -1037,17 +1128,13 @@ map.on('click', e => {
 
 document.getElementById('travel-slider').addEventListener('input', function() {
   travelMaxMin = parseInt(this.value);
-  document.getElementById('travel-time-label').textContent = fmtMinutes(travelMaxMin);
+  document.getElementById('travel-time-label').textContent =
+    travelMaxMin === 0 ? 'Off' : fmtMinutes(travelMaxMin);
   updateSliderTrack();
-  updateTravelCircles();
   updateSectionDots();
-  applyFilters();
+  scheduleIsochroneUpdate();
 });
 
-document.getElementById('travel-speed-input').addEventListener('input', function() {
-  travelSpeed = parseInt(this.value) || 90;
-  if (travelOrigin && travelMaxMin > 0) { updateTravelCircles(); applyFilters(); }
-});
 
 // ── Map view filter ───────────────────────────────────────────────────────────
 document.getElementById('btn-refresh-list').addEventListener('click', function() {
