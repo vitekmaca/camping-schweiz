@@ -371,8 +371,12 @@
           <span id="travel-time-label" style="font-size:12px;font-weight:700;color:#e65100;">Off</span>
         </div>
         <input type="range" id="travel-slider" min="0" max="105" step="15" value="0" />
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:#bbb;margin-top:3px;padding:0 9px;">
-          <span>Off</span><span>30m</span><span>1h</span><span>1h30</span><span style="color:#e65100;">All</span>
+        <div style="position:relative;height:14px;margin-top:3px;font-size:9px;color:#bbb;">
+          <span style="position:absolute;left:0">Off</span>
+          <span style="position:absolute;left:calc((100% - 18px)*2/7 + 9px);transform:translateX(-50%)">30m</span>
+          <span style="position:absolute;left:calc((100% - 18px)*4/7 + 9px);transform:translateX(-50%)">1h</span>
+          <span style="position:absolute;left:calc((100% - 18px)*6/7 + 9px);transform:translateX(-50%)">1h30</span>
+          <span style="position:absolute;right:0;color:#e65100">All</span>
         </div>
         <div id="travel-source-note" style="font-size:10px;color:#aaa;margin-top:6px;display:none;">🛣 OpenStreetMap road network</div>
       </div>
