@@ -67,7 +67,7 @@
       font-size: 12px; font-weight: 500; color: #666;
       cursor: pointer; transition: all .15s; text-align: left; line-height: 1.2;
     }
-    .type-btn .tb-icon { font-size: 16px; flex-shrink: 0; }
+    .type-btn .tb-icon { font-size: 12px; flex-shrink: 0; }
     .type-btn .tb-count { font-size: 10px; opacity: .65; }
     .type-btn.active[data-type="campsite"]   { background: #2d6a4f; border-color: #2d6a4f; color: #fff; }
     .type-btn.active[data-type="farm"]       { background: #795548; border-color: #795548; color: #fff; }
@@ -338,7 +338,7 @@
   </div>
 
   <!-- Water & surroundings -->
-  <div class="filter-section collapsed" id="section-water">
+  <div class="filter-section" id="section-water">
     <div class="section-header">
       <span class="section-label">Water &amp; surroundings</span>
       <span class="section-dot" id="dot-water"></span>
@@ -562,7 +562,7 @@ let userLat = null, userLng = null;
 let lastKey = null;
 
 // ── Map ───────────────────────────────────────────────────────────────────────
-const map = L.map('map').setView([46.8182, 8.2275], 8);
+const map = L.map('map').setView([47.41, 8.65], 10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19,
@@ -1061,7 +1061,7 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   document.getElementById('btn-refresh-list').textContent = '↺ Map view';
   document.getElementById('btn-refresh-list').classList.remove('active');
   applyFilters();
-  map.setView([46.8182, 8.2275], 8);
+  map.setView([47.41, 8.65], 10);
 });
 
 // ── Collapsible sections ──────────────────────────────────────────────────────
